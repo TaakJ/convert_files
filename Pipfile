@@ -9,6 +9,7 @@ openpyxl = "*"
 xlrd = "*"
 chardet = "*"
 xlsxwriter = "*"
+pyyaml = "*"
 
 [dev-packages]
 

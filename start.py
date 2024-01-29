@@ -1,21 +1,20 @@
 import re
 import os
 import glob
+import datetime
+import chardet
+import openpyxl
+import logging
 import pandas as pd
 from pathlib import Path
 from os.path import join
 from io import StringIO
-import datetime
-import chardet
-import openpyxl 
 from openpyxl.utils.dataframe import dataframe_to_rows
-
 
 CURRENT_DIR = os.getcwd()
 
 class CustomException(Exception):
-    def __init__(self, msg_err, **kwargs):
-        # self.__dict__.update(kwargs)
+    def __init__(self, msg_err):
         self.num = len(msg_err)
         
         self._msg_err = msg_err
@@ -26,17 +25,22 @@ class CustomException(Exception):
     
     def _generate_message(self, msg_err):
         for i in range(self.num):
-            if msg_err[i]['status'] == 'Success':
-                fg, bg = '\x1b[6;37;42m', '\x1b[0m'
-            else:
-                fg, bg = '\x1b[6;37;41m', '\x1b[0m'
-            message = f"\033[1mTemplate:\033[0;0m '{msg_err[i]['source']}'\t\033[1mFull_path:\033[0;0m '{msg_err[i]['full_path']}'\t\033[1mStatus:\033[0;0m {fg}'{msg_err[i]['status']}'{bg}"
-            yield message
+            i += i
+            # if msg_err[i]['status'] == 'Success':
+            #     # fg, bg = '\x1b[6;37;42m', '\x1b[0m'
+            # else:
+            #     # fg, bg = '\x1b[6;37;41m', '\x1b[0m'
+            # # message = f"\033[1mTemplate:\033[0;0m '{msg_err[i]['source']}'\t\033[1mFull_path:\033[0;0m '{msg_err[i]['full_path']}'\t\033[1mStatus:\033[0;0m {fg}'{msg_err[i]['status']}'{bg}"
+            yield i
+            
             
 class FOLDER:
     RAW = join(CURRENT_DIR, "RAW/")
     EXCEL = join(CURRENT_DIR, "EXCEL/")
     CSV  = join(CURRENT_DIR, "CSV/")
+    LOG  = join(CURRENT_DIR, "LOG/")
+    
+LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
 class convert_file_to_csv:
     def __init__(self, method_args):
@@ -73,7 +77,7 @@ class convert_file_to_csv:
                     
                 _dict.update({'full_path': full_path, 'status': status})
             
-            ## check success file
+            ## check success file 
             if success_file.__contains__('Missing'):
                 raise CustomException(self.fn_log)
             
@@ -100,12 +104,12 @@ class convert_file_to_csv:
         
         def fn_write(self):
             for _dict in call_func(self):
-                for name, data in _dict['data'].items():  
-                    df = pd.DataFrame(data)
-                    try:
+                try:
+                    for name, data in _dict['data'].items():  
+                        df = pd.DataFrame(data)
+                        ## write Excel
                         if self.output == 1:
                             sheet = wb.create_sheet(name)
-                            # sheet.title = sheet
                             rows = dataframe_to_rows(df, index=False , header=True)
                             for rdx, row in enumerate(rows, 1):
                                 for cdx, val in enumerate(row, 1):
@@ -113,19 +117,23 @@ class convert_file_to_csv:
                                     wf.value = val
                             wb.save(excel)
                             
+                        ## write csv
                         elif self.output == 2:
                             df = pd.DataFrame(data)
                             csv_name = f"{FOLDER.CSV}{name}{date}.csv"
                             df.to_csv(csv_name, index=False, float_format='%g')
                             
+                        ## write text
                         else:
                             print("OK")
-                            
-                    except Exception as err:
-                        _dict.update({'errors': str(err)})
                         
-                _dict.update({'write': 'compalted'})
-        
+                except Exception as err:
+                    _dict.update({'errors': str(err)})
+                        
+            if 'errors' in self.fn_log[0]:
+                raise CustomException(self.fn_log)
+            
+            return self.fn_log
         return fn_write
 
     @write_to_file
@@ -140,7 +148,6 @@ class convert_file_to_csv:
                     data_list = self.generate_excel_dataframe(full_path)
                 else:
                     data_list = self.generate_text_dataframe(full_path)
-                    
                 _dict.update({'data': data_list})
                 
             except Exception as err:
@@ -148,6 +155,8 @@ class convert_file_to_csv:
         
         if 'errors' in self.fn_log[0]:
             raise CustomException(self.fn_log)
+        
+        # self.mapping_data()
             
         return self.fn_log
     
@@ -238,4 +247,9 @@ class convert_file_to_csv:
         df_new = df.to_dict('records')
         data_list[name] = df_new 
         return data_list
-                    
+
+    # def mapping_data(self):
+    #     for _dict in self.fn_log:
+    #         for name, data in _dict['data'].items():
+    #             print(name)
+    #             print(data)

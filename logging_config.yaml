@@ -1,0 +1,22 @@
+version: 1
+formatters: 
+  standard: 
+    class: logging.Formatter
+    format: "%(asctime)s.%(msecs)03d|%(levelname)s|convertfile|%(name)s|%(message)s"
+    datefmt: "%Y/%m/%d %H:%M:%S"
+handlers:
+  console:
+    class : logging.StreamHandler
+    formatter: standard
+    level   : INFO
+    stream  : ext://sys.stdout
+  # file:
+  #   class : logging.handlers.RotatingFileHandler
+  #   formatter: standard
+  #   level : DEBUG
+  #   filename: LOG/tmp_log.log
+root: 
+  level: INFO
+  handlers:
+    - console
+    # - file
