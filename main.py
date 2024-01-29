@@ -24,7 +24,7 @@ def clear_folder():
     for folder in _folders:
         shutil.rmtree(folder)
         
-def setup():
+def setup_project():
     setup_folder()
     setup_log()
     parser = argparse.ArgumentParser()
@@ -46,14 +46,27 @@ def setup():
                                 ' 2 = text file ')
                         )
     method_args = parser.parse_args()
+    
     try:
-        convert_file_to_csv(method_args)
-        # logging.info("completed")
-    except CustomException as err:
-        [logging.error(f"{err.__next__()}") for i in range(err.num)]
         
-    # clear_folder()
+        logging.info("Start Project")
+        convert_file_to_csv(method_args)
+        
+    except CustomException as err:  
+        logging.error("Error Exception")     
+        err_list = iter(err)
+        while True:
+            try:
+                msg_err = next(err_list)
+                logging.error(msg_err)
+            except StopIteration:
+                break
+        logging.info(f"File Found Count {err.n} Status: Success")
+    finally:
+        logging.info("End Project")
+            
+    clear_folder()
 
 if __name__ == "__main__":
-    setup()
+    setup_project()
     
