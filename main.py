@@ -47,12 +47,12 @@ def setup():
                         )
     method_args = parser.parse_args()
     try:
-        a = convert_file_to_csv(method_args)
-        logging.info("completed")
+        convert_file_to_csv(method_args)
+        # logging.info("completed")
     except CustomException as err:
         [logging.error(f"{err.__next__()}") for i in range(err.num)]
         
-    clear_folder()
+    # clear_folder()
 
 if __name__ == "__main__":
     setup()
