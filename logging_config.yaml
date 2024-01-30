@@ -2,7 +2,7 @@ version: 1
 formatters: 
   standard: 
     class: logging.Formatter
-    format: "%(asctime)s.%(msecs)03d|%(name)s|%(levelname)s|convert_2_file|%(funcName)s|%(message)s"
+    format: "%(asctime)s.%(msecs)03d|%(processName)s|%(levelname)s|convert_2_file|%(module)s|%(funcName)s|%(message)s"
     datefmt: "%Y/%m/%d %H:%M:%S"
 handlers:
   console:
@@ -14,9 +14,11 @@ handlers:
   #   class : logging.handlers.RotatingFileHandler
   #   formatter: standard
   #   level : DEBUG
-  #   filename: LOG/tmp_log.log
+  #   mode: w
+  #   backupCount: 20
+  #   filename: LOG/log_info.log
 root: 
   level: INFO
   handlers:
     - console
-    # - file
+    #- file

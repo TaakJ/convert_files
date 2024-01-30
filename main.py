@@ -48,7 +48,6 @@ def setup_project():
     method_args = parser.parse_args()
     
     try:
-        
         logging.info("Start Project")
         convert_file_to_csv(method_args)
         
@@ -61,10 +60,10 @@ def setup_project():
                 logging.error(msg_err)
             except StopIteration:
                 break
-        logging.info(f"File Found Count {err.n} Status: Success")
+        logging.error(f"File Found Count {err.n} Status: Success")
     finally:
         logging.info("End Project")
-            
+        
     clear_folder()
 
 if __name__ == "__main__":

@@ -11,8 +11,6 @@ from os.path import join
 from io import StringIO
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-CURRENT_DIR = os.getcwd()
-
 class CustomException(Exception):
     def __init__(self, err_list):
         self.n = 0
@@ -30,25 +28,24 @@ class CustomException(Exception):
             if err_list[i]['status'] == 'Success':
                 self.n += 1
             yield msg_err
-            
-    
+
+CURRENT_DIR = os.getcwd()
+LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
 class FOLDER:
     RAW = join(CURRENT_DIR, "RAW/")
     EXCEL = join(CURRENT_DIR, "EXCEL/")
     CSV  = join(CURRENT_DIR, "CSV/")
     LOG  = join(CURRENT_DIR, "LOG/")
-    
-LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
 class convert_file_to_csv:
     def __init__(self, method_args):
-        
         self.template = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
         self.run = method_args.run
         self.output = method_args.output
         
         self.get_list_files()
         self.get_data_files()
+        # self.write_to_file()
         
     @property
     def fn_log(self):
@@ -73,7 +70,6 @@ class convert_file_to_csv:
                 else:
                     status = 'Missing'
                     success_file.append(status)
-                    
                 _dict.update({'full_path': full_path, 'status': status})
                 
             ## check success file 
@@ -81,7 +77,6 @@ class convert_file_to_csv:
                 raise CustomException(self.fn_log)
             else:
                 logging.info(f"File Found Count {len(success_file)} Status: Success")
-            
             return self.fn_log
         return fn_success_files
     
@@ -93,58 +88,31 @@ class convert_file_to_csv:
             for file in self.template:
                 source = Path(file).stem
                 fn_log.append({'source': source, 'full_path': file})
-        
         self.fn_log = fn_log
         return self.fn_log
     
-    def write_to_file(call_func):
-        date = datetime.datetime.now().strftime('%Y%m%d')
-        excel = f"{FOLDER.EXCEL}excel_{date}.xlsx" 
-        wb = openpyxl.Workbook()
-        wb.active
-        
-        def fn_write(self):
+    def mapping_data(call_func):
+        def fn_clean_data(self):
             for _dict in call_func(self):
                 try:
-                    for name, data in _dict['data'].items():  
+                    for name, data in _dict['data'].items():
+                        logging.info(f"Mapping Data Sheet: '{name}'")
                         df = pd.DataFrame(data)
-                        ## write Excel
-                        if self.output == 1:
-                            sheet = wb.create_sheet(name)
-                            rows = dataframe_to_rows(df, index=False , header=True)
-                            for rdx, row in enumerate(rows, 1):
-                                for cdx, val in enumerate(row, 1):
-                                    wf = sheet.cell(row=rdx, column=cdx)
-                                    wf.value = val
-                            wb.save(excel)
-                            
-                        ## write csv
-                        elif self.output == 2:
-                            df = pd.DataFrame(data)
-                            csv_name = f"{FOLDER.CSV}{name}{date}.csv"
-                            df.to_csv(csv_name, index=False, float_format='%g')
-                            
-                        ## write text
-                        else:
-                            print("OK")
                         
                 except Exception as err:
                     _dict.update({'errors': str(err)})
-                        
-            if 'errors' in self.fn_log[0]:
-                raise CustomException(self.fn_log)
-            
+                    
+                _dict.update({'Mapping': 'Success'})
             return self.fn_log
-        return fn_write
+        return fn_clean_data
     
-    @write_to_file
+    @mapping_data
     def get_data_files(self):
         
         logging.info('Get Data Files')
         for _dict in self.fn_log:
             full_path = _dict['full_path']
             types = Path(_dict['full_path']).suffix
-            
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel Files: '{full_path}'")
@@ -156,13 +124,10 @@ class convert_file_to_csv:
                 
             except Exception as err:
                 _dict.update({'errors': str(err)})
-        
+                
         if 'errors' in self.fn_log[0]:
             raise CustomException(self.fn_log)
-        
-        # self.mapping_data()  
         return self.fn_log
-    
     
     @staticmethod
     def generate_excel_dataframe(full_path):
@@ -184,12 +149,11 @@ class convert_file_to_csv:
     @staticmethod
     def generate_text_dataframe(full_path):
         data_list = {}
-        ## get_decoded_data
+        
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
         files.seek(0)
         decoded_data = files.read().decode(encoded)
-        
         name =  str(Path(full_path).stem).upper()
         
         clean_lines_column = []
@@ -248,13 +212,44 @@ class convert_file_to_csv:
             df.columns = clean_lines_column
             
         df_new = df.to_dict('records')
-        data_list[name] = df_new 
+        data_list[name] = df_new
         
         logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
         return data_list
     
-    # def mapping_data(self):
-    #     for _dict in self.fn_log:
-    #         for name, data in _dict['data'].items():
-    #             print(name)
-    #             print(data)
+    def write_to_file(self):
+        logging.info('Write Data to Files')
+        date = datetime.datetime.now().strftime('%Y%m%d')
+        excel = f"{FOLDER.EXCEL}excel_{date}.xlsx" 
+        wb = openpyxl.Workbook()
+        wb.active
+        for _dict in self.fn_log:
+            try:
+                for name, data in _dict['data'].items():  
+                    df = pd.DataFrame(data)
+                    ## Write Excel
+                    if self.output == 1:
+                        sheet = wb.create_sheet(name)
+                        rows = dataframe_to_rows(df, index=False , header=True)
+                        for rdx, row in enumerate(rows, 1):
+                            for cdx, val in enumerate(row, 1):
+                                wf = sheet.cell(row=rdx, column=cdx)
+                                wf.value = val
+                        wb.save(excel)
+                        
+                    ## Write CSV
+                    elif self.output == 2:
+                        df = pd.DataFrame(data)
+                        csv_name = f"{FOLDER.CSV}{name}{date}.csv"
+                        df.to_csv(csv_name, index=False, float_format='%g')
+                        
+                    ## Write Text
+                    else:
+                        print("OK")
+                    
+            except Exception as err:
+                _dict.update({'errors': str(err)})
+                    
+        if 'errors' in self.fn_log[0]:
+            raise CustomException(self.fn_log)
+        
