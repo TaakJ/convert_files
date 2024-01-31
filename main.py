@@ -3,7 +3,7 @@ import os
 import yaml
 import shutil
 import logging.config 
-from start import convert_file_to_csv, CustomException, FOLDER, LOGGER_CONFIG
+from start import convert_file_to_csv, CustomException, Tmp, LOGGER_CONFIG
 
 def setup_log():
     _yaml = None
@@ -15,12 +15,12 @@ def setup_log():
         raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
 
 def setup_folder():
-    _folders = [value for name, value in vars(FOLDER).items() if not name.startswith('_')]
+    _folders = [value for name, value in vars(Tmp).items() if not name.startswith('_')]
     for folder in _folders:
         os.makedirs(folder, exist_ok=True)
         
 def clear_folder():
-    _folders = [value for name, value in vars(FOLDER).items() if not name.startswith('_') and not value.endswith('RAW/')]
+    _folders = [value for name, value in vars(Tmp).items() if not name.startswith('_') and not value.endswith('log/')]
     for folder in _folders:
         shutil.rmtree(folder)
         
@@ -63,8 +63,8 @@ def setup_project():
         logging.error(f"File Found Count {err.n} Status: Success")
     finally:
         logging.info("End Project")
-        
-    clear_folder()
+
+    # clear_folder()
 
 if __name__ == "__main__":
     setup_project()

@@ -16,7 +16,7 @@ handlers:
   #   level : DEBUG
   #   mode: w
   #   backupCount: 20
-  #   filename: LOG/log_info.log
+  #   filename: tmp/log/log_info.log
 root: 
   level: INFO
   handlers:

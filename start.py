@@ -29,13 +29,13 @@ class CustomException(Exception):
                 self.n += 1
             yield msg_err
 
+
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
-class FOLDER:
-    RAW = join(CURRENT_DIR, "RAW/")
-    EXCEL = join(CURRENT_DIR, "EXCEL/")
-    CSV  = join(CURRENT_DIR, "CSV/")
-    LOG  = join(CURRENT_DIR, "LOG/")
+class Tmp(object):    
+    RAW         = join(CURRENT_DIR, "raw/")
+    CSV         = join(CURRENT_DIR, "tmp/csv/")
+    EXCEL       = join(CURRENT_DIR, "tmp/excel/")
 
 class convert_file_to_csv:
     def __init__(self, method_args):
@@ -63,7 +63,7 @@ class convert_file_to_csv:
             for _dict in call_func(self):
                 filename = _dict['full_path']
                 
-                full_path = FOLDER.RAW + filename
+                full_path = Tmp.RAW + filename
                 if glob.glob(full_path, recursive=True):
                     status = 'Success'
                     success_file.append(status)
@@ -173,6 +173,7 @@ class convert_file_to_csv:
                     else:
                         nested_lines = [] 
                         for n, val in enumerate(gen_regex):
+                            # Fix Column Rownum/UserID
                             if n == 0:
                                 val = "".join(val).split(' ')
                                 nested_lines.extend(val)
@@ -194,6 +195,7 @@ class convert_file_to_csv:
                         nested_lines = []
                         for n, val in enumerate(gen_regex):
                             if n == 3:
+                                # Fix Column STAMP/ADD_ID
                                 val = "".join(val).split(' ')
                                 nested_lines.extend(val)
                             else:
@@ -220,7 +222,7 @@ class convert_file_to_csv:
     def write_to_file(self):
         logging.info('Write Data to Files')
         date = datetime.datetime.now().strftime('%Y%m%d')
-        excel = f"{FOLDER.EXCEL}excel_{date}.xlsx" 
+        excel = f"{Tmp.EXCEL}excel_{date}.xlsx" 
         wb = openpyxl.Workbook()
         wb.active
         for _dict in self.fn_log:
@@ -240,7 +242,7 @@ class convert_file_to_csv:
                     ## Write CSV
                     elif self.output == 2:
                         df = pd.DataFrame(data)
-                        csv_name = f"{FOLDER.CSV}{name}{date}.csv"
+                        csv_name = f"{Tmp.CSV}{name}{date}.csv"
                         df.to_csv(csv_name, index=False, float_format='%g')
                         
                     ## Write Text

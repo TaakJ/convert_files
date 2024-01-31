@@ -10,6 +10,8 @@ xlrd = "*"
 chardet = "*"
 xlsxwriter = "*"
 pyyaml = "*"
+pip = "*"
+detect-delimiter = "*"
 
 [dev-packages]
 
