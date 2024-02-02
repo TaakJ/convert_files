@@ -10,15 +10,15 @@ handlers:
     formatter: standard
     level   : INFO
     stream  : ext://sys.stdout
-  # file:
-  #   class : logging.handlers.RotatingFileHandler
-  #   formatter: standard
-  #   level : DEBUG
-  #   mode: w
-  #   backupCount: 20
-  #   filename: tmp/log/log_info.log
+  file:
+    class : logging.handlers.RotatingFileHandler
+    formatter: standard
+    level : DEBUG
+    mode: w
+    backupCount: 20
+    filename: tmp/log/log_info.log
 root: 
   level: INFO
   handlers:
     - console
-    #- file
+    # - file

@@ -1,5 +1,4 @@
 import re
-import os
 import glob
 import datetime
 import chardet
@@ -7,9 +6,9 @@ import openpyxl
 import logging
 import pandas as pd
 from pathlib import Path
-from os.path import join
 from io import StringIO
 from openpyxl.utils.dataframe import dataframe_to_rows
+from verify import FOLDER, verify_files
 
 class CustomException(Exception):
     def __init__(self, err_list):
@@ -28,14 +27,7 @@ class CustomException(Exception):
             if err_list[i]['status'] == 'Success':
                 self.n += 1
             yield msg_err
-
-
-CURRENT_DIR = os.getcwd()
-LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
-class Tmp(object):    
-    RAW         = join(CURRENT_DIR, "raw/")
-    CSV         = join(CURRENT_DIR, "tmp/csv/")
-    EXCEL       = join(CURRENT_DIR, "tmp/excel/")
+            
 
 class convert_file_to_csv:
     def __init__(self, method_args):
@@ -43,8 +35,8 @@ class convert_file_to_csv:
         self.run = method_args.run
         self.output = method_args.output
         
-        self.get_list_files()
-        self.get_data_files()
+        # self.get_list_files()
+        # self.get_data_files()
         # self.write_to_file()
         
     @property
@@ -53,7 +45,7 @@ class convert_file_to_csv:
     
     @fn_log.setter
     def fn_log(self, log):
-        self.__log = list({dictionary['source']: dictionary for dictionary in log}.values())
+        self.__log = list({_dict['source']: _dict for _dict in log}.values())
     
     def check_success_files(call_func):
         def fn_success_files(self):
@@ -63,7 +55,7 @@ class convert_file_to_csv:
             for _dict in call_func(self):
                 filename = _dict['full_path']
                 
-                full_path = Tmp.RAW + filename
+                full_path = FOLDER.RAW + filename
                 if glob.glob(full_path, recursive=True):
                     status = 'Success'
                     success_file.append(status)
@@ -113,10 +105,11 @@ class convert_file_to_csv:
         for _dict in self.fn_log:
             full_path = _dict['full_path']
             types = Path(_dict['full_path']).suffix
+            
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel Files: '{full_path}'")
-                    data_list = self.generate_excel_dataframe(full_path)
+                    # data_list = self.generate_excel_dataframe(full_path)
                 else:
                     logging.info(f"Read Text Files: '{full_path}'")
                     data_list = self.generate_text_dataframe(full_path)
@@ -129,100 +122,102 @@ class convert_file_to_csv:
             raise CustomException(self.fn_log)
         return self.fn_log
     
-    @staticmethod
-    def generate_excel_dataframe(full_path):
-        data_list = {}
-        sheet_list =  [sheet for sheet in pd.ExcelFile(full_path).sheet_names if sheet != 'StyleSheet']
+    # @staticmethod
+    # def generate_excel_dataframe(full_path):
+    #     data_list = {}
+    #     sheet_list =  [sheet for sheet in pd.ExcelFile(full_path).sheet_names if sheet != 'StyleSheet']
         
-        for name in sheet_list:
-            df = pd.read_excel(full_path, sheet_name=name, header=0)
-            df.columns = [value  if 'Unnamed' in col else col for col, value in df.iloc[0].items()]
+    #     for name in sheet_list:
+    #         df = pd.read_excel(full_path, sheet_name=name)
+    #         df.columns = [value  if 'Unnamed' in col else col for col, value in df.iloc[0].items()]
             
-            if set(df.columns.values) == set(df.iloc[0].values):
-                df = df.drop(index=0, axis=0).reset_index(drop=True)
-            df_new = df.to_dict('records')
-            data_list[name] = df_new 
-            
-            logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
-        return data_list
-        
-    @staticmethod
-    def generate_text_dataframe(full_path):
-        data_list = {}
-        
-        files = open(full_path, 'rb')
-        encoded = chardet.detect(files.read())['encoding']
-        files.seek(0)
-        decoded_data = files.read().decode(encoded)
-        name =  str(Path(full_path).stem).upper()
-        
-        clean_lines_column = []
-        clean_lines_value = []
-        for line_num, line in enumerate(StringIO(decoded_data)):
-            regex = re.compile(r'\w+.*')
-            line_list = regex.findall(line)
-            
-            if line_list != []:
-                gen_regex = re.sub(r'\W\s+','||',"".join(line_list).strip()).split('||')
+    #         if set(df.columns.values) == set(df.iloc[0].values):
+    #             df = df.drop(index=0, axis=0).reset_index(drop=True)
                 
-                ## LDS-P_USERDETAIL ##
-                if name == 'LDS-P_USERDETAIL':
-                    if line_num == 0:
-                        for col in gen_regex:
-                            clean_lines_column = "".join(col).split(' ')
-                    else:
-                        nested_lines = [] 
-                        for n, val in enumerate(gen_regex):
-                            # Fix Column Rownum/UserID
-                            if n == 0:
-                                val = "".join(val).split(' ')
-                                nested_lines.extend(val)
-                            else:
-                                nested_lines.append(val)
-                        clean_lines_value.append(nested_lines)
-                        
-                ## DOCIMAGE ##     
-                elif name == 'DOCIMAGE':
-                    if line_num == 5:
-                        nested_lines = []
-                        for n_col, col in enumerate(gen_regex):
-                            if n_col == 4:
-                                col = "".join(col).split(' ')
-                                clean_lines_column.extend(col)
-                            else:
-                                clean_lines_column.append(col)
-                    elif line_num > 5:
-                        nested_lines = []
-                        for n, val in enumerate(gen_regex):
-                            if n == 3:
-                                # Fix Column STAMP/ADD_ID
-                                val = "".join(val).split(' ')
-                                nested_lines.extend(val)
-                            else:
-                                nested_lines.append(val)
-                        clean_lines_value.append(nested_lines)
-                        
-                ## ADM ##     
-                elif name == 'ADM':
-                    nested_lines = []
-                    for val in gen_regex:
-                        nested_lines.append(val)
-                    clean_lines_value.append(nested_lines)
-        
-        df = pd.DataFrame(clean_lines_value)
-        if clean_lines_column != []:
-            df.columns = clean_lines_column
+    #         df_new = df.to_dict('records')
+    #         data_list[name] = df_new
             
-        df_new = df.to_dict('records')
-        data_list[name] = df_new
+    #         logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
+    #     return data_list
         
-        logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
-        return data_list
+    # @staticmethod
+    # def generate_text_dataframe(full_path):
+    #     data_list = {}
+        
+    #     files = open(full_path, 'rb')
+    #     encoded = chardet.detect(files.read())['encoding']
+    #     files.seek(0)
+    #     decoded_data = files.read().decode(encoded)
+    #     name =  str(Path(full_path).stem).upper()
+        
+    #     clean_lines_column = []
+    #     clean_lines_value = []
+    #     for line_num, line in enumerate(StringIO(decoded_data)):
+    #         regex = re.compile(r'\w+.*')
+    #         line_list = regex.findall(line)
+            
+            
+    #         if line_list != []:
+    #             gen_regex = re.sub(r'\W\s+','||',"".join(line_list).strip()).split('||')
+                
+    #             ## LDS-P_USERDETAIL ##
+    #             if name == 'LDS-P_USERDETAIL':
+    #                 if line_num == 0:
+    #                     for col in gen_regex:
+    #                         clean_lines_column = "".join(col).split(' ')
+    #                 else:
+    #                     nested_lines = [] 
+    #                     for n, val in enumerate(gen_regex):
+    #                         # Fix Column Rownum/UserID
+    #                         if n == 0:
+    #                             val = "".join(val).split(' ')
+    #                             nested_lines.extend(val)
+    #                         else:
+    #                             nested_lines.append(val)
+    #                     clean_lines_value.append(nested_lines)
+                        
+    #             ## DOCIMAGE ##     
+    #             elif name == 'DOCIMAGE':
+    #                 if line_num == 5:
+    #                     nested_lines = []
+    #                     for n_col, col in enumerate(gen_regex):
+    #                         if n_col == 4:
+    #                             col = "".join(col).split(' ')
+    #                             clean_lines_column.extend(col)
+    #                         else:
+    #                             clean_lines_column.append(col)
+    #                 elif line_num > 5:
+    #                     nested_lines = []
+    #                     for n, val in enumerate(gen_regex):
+    #                         if n == 3:
+    #                             # Fix Column STAMP/ADD_ID
+    #                             val = "".join(val).split(' ')
+    #                             nested_lines.extend(val)
+    #                         else:
+    #                             nested_lines.append(val)
+    #                     clean_lines_value.append(nested_lines)
+                        
+    #             ## ADM ##     
+    #             elif name == 'ADM':
+    #                 nested_lines = []
+    #                 for val in gen_regex:
+    #                     nested_lines.append(val)
+    #                 clean_lines_value.append(nested_lines)
+        
+    #     df = pd.DataFrame(clean_lines_value)
+    #     if clean_lines_column != []:
+    #         df.columns = clean_lines_column
+            
+    #     df_new = df.to_dict('records')
+    #     data_list[name] = df_new
+        
+    #     logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
+    #     return data_list
     
     def write_to_file(self):
         logging.info('Write Data to Files')
         date = datetime.datetime.now().strftime('%Y%m%d')
-        excel = f"{Tmp.EXCEL}excel_{date}.xlsx" 
+        excel = f"{FOLDER.EXCEL}excel_{date}.xlsx" 
         wb = openpyxl.Workbook()
         wb.active
         for _dict in self.fn_log:
@@ -242,7 +237,7 @@ class convert_file_to_csv:
                     ## Write CSV
                     elif self.output == 2:
                         df = pd.DataFrame(data)
-                        csv_name = f"{Tmp.CSV}{name}{date}.csv"
+                        csv_name = f"{FOLDER.CSV}{name}{date}.csv"
                         df.to_csv(csv_name, index=False, float_format='%g')
                         
                     ## Write Text
