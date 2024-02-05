@@ -1,4 +1,5 @@
 import glob
+import warnings
 import datetime
 import openpyxl
 import logging
@@ -36,13 +37,16 @@ class convert_file_to_csv:
         self.get_data_files()
         # self.write_to_file()
         
+        
     @property
     def fn_log(self):
         return self.__log
     
+    
     @fn_log.setter
     def fn_log(self, log):
         self.__log = list({_dict['source']: _dict for _dict in log}.values())
+    
     
     def check_success_files(call_func):
         def fn_success_files(self):
@@ -71,6 +75,7 @@ class convert_file_to_csv:
         
         return fn_success_files
     
+    
     @check_success_files
     def get_list_files(self):
         
@@ -83,25 +88,33 @@ class convert_file_to_csv:
         
         return self.fn_log
     
+    
     def mapping_data(call_func):
         def fn_data_mapping(self):
             for _dict in call_func(self):
                 try:
                     for sheets, data in _dict['data'].items():
                         logging.info(f"Mapping Data Sheet: '{sheets}'")
+                        ## ignore UserWarning: Data Validation no header in sheet: USER REPORT
+                        warnings.simplefilter(action='ignore', category=UserWarning)
                         df = pd.DataFrame(data)
-                        df.columns = df.iloc[0]
+                        df.columns = df.iloc[0].values
                         df = df[1:]
                         df = df.reset_index(drop=True)
+                        
+                        print(df)
+                        _dict.update({'data': df.to_dict('records')})
                         
                 except Exception as err:
                     _dict.update({'errors': str(err)})
                     
-                #_dict.update({'Mapping': 'Success'})
-            
+            if 'errors' in self.fn_log[0]:
+                raise CustomException(self.fn_log)
+                
             return self.fn_log
         
         return fn_data_mapping
+    
     
     @mapping_data
     def get_data_files(self):
@@ -128,6 +141,7 @@ class convert_file_to_csv:
             raise CustomException(self.fn_log)
         
         return self.fn_log
+    
     
     def write_to_file(self):
         

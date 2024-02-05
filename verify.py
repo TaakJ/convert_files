@@ -16,7 +16,8 @@ class FOLDER(object):
     RAW         = join(CURRENT_DIR, "raw/")
     CSV         = join(CURRENT_DIR, "tmp/csv/")
     EXCEL       = join(CURRENT_DIR, "tmp/excel/")
-    LOG       = join(CURRENT_DIR, "tmp/log/")
+    LOG         = join(CURRENT_DIR, "tmp/log/")
+    
     
     @staticmethod
     def setup_log():
@@ -110,12 +111,12 @@ class verify_files(object):
                             clean_data = " ".join(data).split(' ') # column
                         else:
                             for idx, value in enumerate(data): # fix value
-                                if idx == 1:
+                                if idx == 0:
                                     value = re.sub(r'\s+',',', value).split(',')
                                     clean_data.extend(value)
                                 else:
                                     clean_data.append(value)
-                    
+                                    
                     ## DOCIMAGE ##  
                     elif sheets == 'DOCIMAGE':
                         if rows == 1:
@@ -142,6 +143,6 @@ class verify_files(object):
                 
             except StopIteration:
                 break
-            
+        
         return _dict
                 

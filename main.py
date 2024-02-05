@@ -2,11 +2,13 @@ import argparse
 import logging
 from start import convert_file_to_csv, CustomException
 from verify import FOLDER
-        
+
+from os.path import join
+
 def setup_project():
     
-    FOLDER.setup_log()
     FOLDER.setup_folder()
+    FOLDER.setup_log()
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-r","--run",

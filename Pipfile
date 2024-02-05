@@ -11,6 +11,8 @@ xlsxwriter = "*"
 pyyaml = "*"
 pip = "*"
 xlrd = "==1.2.0"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 
