@@ -1,7 +1,7 @@
 import argparse
 import logging
 from start import convert_file_to_csv, CustomException
-from verify import FOLDER, verify_files
+from verify import FOLDER
         
 def setup_project():
     

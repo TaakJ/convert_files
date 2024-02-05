@@ -5,7 +5,6 @@ import xlrd
 import shutil
 import yaml
 import logging.config
-import pandas as pd
 import chardet
 from io import StringIO
 from pathlib import Path
@@ -64,13 +63,13 @@ class verify_files(object):
         clean_data = iter(cls.clean_lines_excel(full_path))
         while True:
             try:
-                for sheets, data in  next(clean_data).items():
-                    if not all(dup == data[0] for dup in data):
+                for sheets, data in next(clean_data).items():
+                    if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
                         if sheets not in _dict:
                             _dict[sheets] = [data]
                         else:
                             _dict[sheets].append(data)
-                        
+                            
             except StopIteration:
                 break
             

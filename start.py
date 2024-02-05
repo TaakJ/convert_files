@@ -95,11 +95,12 @@ class convert_file_to_csv:
                         df = df.reset_index(drop=True)
                         
                 except Exception as err:
-                    print(err)
-                    # _dict.update({'errors': str(err)})
+                    _dict.update({'errors': str(err)})
                     
-                # _dict.update({'Mapping': 'Success'})
+                #_dict.update({'Mapping': 'Success'})
+            
             return self.fn_log
+        
         return fn_data_mapping
     
     @mapping_data
@@ -113,12 +114,12 @@ class convert_file_to_csv:
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel Files: '{full_path}'")
-                    data_list = verify_files.generate_excel_dataframe(full_path)
+                    list_data = verify_files.generate_excel_dataframe(full_path)
                 else:
                     logging.info(f"Read Text Files: '{full_path}'")
-                    data_list = verify_files.generate_text_dataframe(full_path)
-                
-                _dict.update({'data': data_list})
+                    list_data = verify_files.generate_text_dataframe(full_path)
+                    
+                _dict.update({'data': list_data})
                 
             except Exception as err:
                 _dict.update({'errors': err})
