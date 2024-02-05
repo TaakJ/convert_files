@@ -1,0 +1,91 @@
+@staticmethod
+    def generate_excel_dataframe(full_path):
+        data_list = {}
+        sheet_list =  [sheet for sheet in pd.ExcelFile(full_path).sheet_names if sheet != 'StyleSheet']
+        
+        for name in sheet_list:
+            df = pd.read_excel(full_path, sheet_name=name)
+            df.columns = [value  if 'Unnamed' in col else col for col, value in df.iloc[0].items()]
+            
+            if set(df.columns.values) == set(df.iloc[0].values):
+                df = df.drop(index=0, axis=0).reset_index(drop=True)
+                
+            df_new = df.to_dict('records')
+            data_list[name] = df_new
+            
+            logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
+        return data_list
+        
+    @staticmethod
+    def generate_text_dataframe(full_path):
+        data_list = {}
+        
+        files = open(full_path, 'rb')
+        encoded = chardet.detect(files.read())['encoding']
+        files.seek(0)
+        decoded_data = files.read().decode(encoded)
+        name =  str(Path(full_path).stem).upper()
+        
+        clean_lines_column = []
+        clean_lines_value = []
+        for line_num, line in enumerate(StringIO(decoded_data)):
+            regex = re.compile(r'\w+.*')
+            line_list = regex.findall(line)
+            
+            
+            if line_list != []:
+                gen_regex = re.sub(r'\W\s+','||',"".join(line_list).strip()).split('||')
+                
+                ## LDS-P_USERDETAIL ##
+                if name == 'LDS-P_USERDETAIL':
+                    if line_num == 0:
+                        for col in gen_regex:
+                            clean_lines_column = "".join(col).split(' ')
+                    else:
+                        nested_lines = [] 
+                        for n, val in enumerate(gen_regex):
+                            # Fix Column Rownum/UserID
+                            if n == 0:
+                                val = "".join(val).split(' ')
+                                nested_lines.extend(val)
+                            else:
+                                nested_lines.append(val)
+                        clean_lines_value.append(nested_lines)
+                        
+                ## DOCIMAGE ##     
+                elif name == 'DOCIMAGE':
+                    if line_num == 5:
+                        nested_lines = []
+                        for n_col, col in enumerate(gen_regex):
+                            if n_col == 4:
+                                col = "".join(col).split(' ')
+                                clean_lines_column.extend(col)
+                            else:
+                                clean_lines_column.append(col)
+                    elif line_num > 5:
+                        nested_lines = []
+                        for n, val in enumerate(gen_regex):
+                            if n == 3:
+                                # Fix Column STAMP/ADD_ID
+                                val = "".join(val).split(' ')
+                                nested_lines.extend(val)
+                            else:
+                                nested_lines.append(val)
+                        clean_lines_value.append(nested_lines)
+                        
+                ## ADM ##     
+                elif name == 'ADM':
+                    nested_lines = []
+                    for val in gen_regex:
+                        nested_lines.append(val)
+                    clean_lines_value.append(nested_lines)
+        
+        df = pd.DataFrame(clean_lines_value)
+        if clean_lines_column != []:
+            df.columns = clean_lines_column
+            
+        df_new = df.to_dict('records')
+        data_list[name] = df_new
+        
+        logging.info(f"Read Sheetname: '{name}' Status: 'Succees'")
+        return data_list
