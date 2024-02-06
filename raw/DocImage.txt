@@ -1,7 +1,4 @@
-SELECT US.USERNAME, US.APPCODE, US.NAME, US.STAMP, FC.ADD_ID, 
- FC.EDIT_ID, FC.ADD_DOC, FC.EDIT_DOC, FC.SCAN, FC.ADD_USER 
- FROM db2admin.USER2 US LEFT JOIN db2admin.USER_FUNCTION FC 
- ON SUBSTR(US.GROUPID2,4,4) = FC.GROUPID
+SELECT US.USERNAME, US.APPCODE, US.NAME, US.STAMP, FC.ADD_ID,  FC.EDIT_ID, FC.ADD_DOC, FC.EDIT_DOC, FC.SCAN, FC.ADD_USER  FROM db2admin.USER2 US LEFT JOIN db2admin.USER_FUNCTION FC  ON SUBSTR(US.GROUPID2,4,4) = FC.GROUPID
 
 USERNAME         APPCODE    NAME                                               STAMP                      ADD_ID EDIT_ID ADD_DOC EDIT_DOC SCAN ADD_USER
 ---------------- ---------- -------------------------------------------------- -------------------------- ------ ------- ------- -------- ---- --------

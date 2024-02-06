@@ -6,11 +6,15 @@ name = "pypi"
 [packages]
 pandas = "*"
 openpyxl = "*"
-xlrd = "*"
 chardet = "*"
 xlsxwriter = "*"
+pyyaml = "*"
+pip = "*"
+xlrd = "==1.2.0"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "*"
