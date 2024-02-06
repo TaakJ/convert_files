@@ -14,10 +14,9 @@ LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
 class FOLDER(object):
     RAW         = join(CURRENT_DIR, "raw/")
-    CSV         = join(CURRENT_DIR, "tmp/csv/")
-    EXCEL       = join(CURRENT_DIR, "tmp/excel/")
+    TEMPLATE    = join(CURRENT_DIR, "template/")
+    EXPORT      = join(CURRENT_DIR, "tmp/export")
     LOG         = join(CURRENT_DIR, "tmp/log/")
-    
     
     @staticmethod
     def setup_log():
@@ -37,7 +36,7 @@ class FOLDER(object):
             
     @staticmethod
     def clear_folder():
-        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and not value.endswith(('raw/','log/'))]
+        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and not value.endswith(('raw/','log/', 'template/'))]
         for folder in _folders:
             shutil.rmtree(folder)
             
@@ -145,4 +144,23 @@ class verify_files(object):
                 break
         
         return _dict
+    
+    @staticmethod
+    def read_template():
+        data = []
+        full_path = FOLDER.TEMPLATE + 'Application Data Requirements.xlsx'
+        workbook = xlrd.open_workbook(full_path)
+        ## sheet: Field Name
+        sheet = workbook.sheet_by_index(0)
+        rows = sheet.get_rows()
+        next(rows)
+        for row in rows:
+            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
+                break
+            else:
+                data.append([cell.value for cell in row])
                 
+        if len(data) >= 1:
+            print(data)
+        
+

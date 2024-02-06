@@ -8,6 +8,3 @@ RUN pip install pipenv
 RUN pipenv install --skip-lock
 
 CMD ["python", "./main.py"]
-
-
-

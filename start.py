@@ -30,11 +30,11 @@ class CustomException(Exception):
 class convert_file_to_csv:
     def __init__(self, method_args):
         self.template = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
-        self.run = method_args.run
-        self.output = method_args.output
         
-        self.get_list_files()
-        self.get_data_files()
+        verify_files.read_template()
+        
+        # self.get_list_files()
+        # self.get_data_files()
         # self.write_to_file()
         
         
@@ -46,7 +46,7 @@ class convert_file_to_csv:
     @fn_log.setter
     def fn_log(self, log):
         self.__log = list({_dict['source']: _dict for _dict in log}.values())
-    
+        
     
     def check_success_files(call_func):
         def fn_success_files(self):
@@ -65,7 +65,6 @@ class convert_file_to_csv:
                     success_file.append(status)
                 _dict.update({'full_path': full_path, 'status': status})
                 
-            ## check success file 
             if success_file.__contains__('Missing'):
                 raise CustomException(self.fn_log)
             else:
@@ -80,10 +79,9 @@ class convert_file_to_csv:
     def get_list_files(self):
         
         fn_log = []
-        if self.run == 0:
-            for file in self.template:
-                source = Path(file).stem
-                fn_log.append({'source': source, 'full_path': file})
+        for file in self.template:
+            source = Path(file).stem
+            fn_log.append({'source': source, 'full_path': file})
         self.fn_log = fn_log
         
         return self.fn_log
@@ -101,8 +99,6 @@ class convert_file_to_csv:
                         df.columns = df.iloc[0].values
                         df = df[1:]
                         df = df.reset_index(drop=True)
-                        
-                        print(df)
                         _dict.update({'data': df.to_dict('records')})
                         
                 except Exception as err:
@@ -147,7 +143,7 @@ class convert_file_to_csv:
         
         logging.info('Write Data to Files')
         date = datetime.datetime.now().strftime('%Y%m%d')
-        excel = f"{FOLDER.EXCEL}excel_{date}.xlsx" 
+        excel = f"{FOLDER.EXPORT}excel_{date}.xlsx" 
         wb = openpyxl.Workbook()
         wb.active
         
@@ -168,7 +164,7 @@ class convert_file_to_csv:
                     ## Write CSV
                     elif self.output == 2:
                         df = pd.DataFrame(data)
-                        csv_name = f"{FOLDER.CSV}{name}{date}.csv"
+                        csv_name = f"{FOLDER.EXPORT}{name}{date}.csv"
                         df.to_csv(csv_name, index=False, float_format='%g')
                         
                     ## Write Text

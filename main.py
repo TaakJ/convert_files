@@ -3,21 +3,19 @@ import logging
 from start import convert_file_to_csv, CustomException
 from verify import FOLDER
 
-from os.path import join
-
 def setup_project():
     
     FOLDER.setup_folder()
     FOLDER.setup_log()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r","--run",
+    parser.add_argument("-s","-RAW",
                         required=False, 
-                        type=int,
-                        default=0,
-                        choices=[0,1],
-                        help = (' 0 = manual '
-                                ' 1 = schedule ')
+                        type=str
+                        )
+    parser.add_argument("-x","--EXPORT",
+                        required=False, 
+                        type=str
                         )
     parser.add_argument("-o","--output",
                         required=False, 
