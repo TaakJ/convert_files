@@ -4,7 +4,9 @@ from start import convert_file_to_csv, CustomException
 from verify import FOLDER
 
 def setup_project():
-    
+
+    FOLDER.backup_folder()
+    FOLDER.clear_folder()
     FOLDER.setup_folder()
     FOLDER.setup_log()
     
@@ -45,8 +47,6 @@ def setup_project():
     
     finally:
         logging.info("End Project")
-    
-    FOLDER.clear_folder()
 
 if __name__ == "__main__":
     setup_project()

@@ -6,6 +6,7 @@ import shutil
 import yaml
 import logging.config
 import chardet
+from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
 
@@ -14,8 +15,7 @@ LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
 class FOLDER(object):
     RAW         = join(CURRENT_DIR, "raw/")
-    TEMPLATE    = join(CURRENT_DIR, "template/")
-    EXPORT      = join(CURRENT_DIR, "tmp/export")
+    EXPORT      = join(CURRENT_DIR, "export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     
     @staticmethod
@@ -36,10 +36,27 @@ class FOLDER(object):
             
     @staticmethod
     def clear_folder():
-        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and not value.endswith(('raw/','log/', 'template/'))]
+        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and not value.endswith(('raw/','export/'))]
         for folder in _folders:
             shutil.rmtree(folder)
-            
+    
+    @classmethod
+    def backup_folder(cls):
+        date = (datetime.now() - timedelta(days=1)).strftime('%d%m%Y')
+        bk_path = join(FOLDER.EXPORT, f"BK_{date}")
+        
+        if not os.path.exists(bk_path):
+            os.makedirs(bk_path)
+        else:
+            shutil.rmtree(bk_path)
+            os.makedirs(bk_path)
+        
+        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and value.endswith(('export/','log/'))]
+        for folder in _folders:
+            for files in os.listdir(folder):
+                if files.endswith((".xlsx",'.log')):
+                    shutil.copy2(join(folder, files), bk_path)
+                    
             
 class verify_files(object):
     
@@ -146,21 +163,23 @@ class verify_files(object):
         return _dict
     
     @staticmethod
-    def read_template():
+    def read_export_tmp_daily(date):
+        
         data = []
-        full_path = FOLDER.TEMPLATE + 'Application Data Requirements.xlsx'
-        workbook = xlrd.open_workbook(full_path)
-        ## sheet: Field Name
-        sheet = workbook.sheet_by_index(0)
-        rows = sheet.get_rows()
-        next(rows)
-        for row in rows:
-            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
-                break
-            else:
-                data.append([cell.value for cell in row])
+        full_path =  FOLDER.LOG + f'DD_{date}.xlsx'
+        print(full_path)
+        # workbook = xlrd.open_workbook(full_path)
+        # sheet = workbook.sheet_by_index(0)
+        # rows = sheet.get_rows()
+        
+        # next(rows)
+        # for row in rows:
+        #     if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
+        #         break
+        #     else:
+        #         data.append([cell.value for cell in row])
                 
-        if len(data) >= 1:
-            print(data)
+        # if len(data) >= 1:
+        #     print(data)
         
 

@@ -1,0 +1,29 @@
+2024/02/07 16:55:44.853|MainProcess|INFO|convert_2_file|main|setup_project|Start Project
+2024/02/07 16:55:44.853|MainProcess|INFO|convert_2_file|start|fn_success_files|Check Success Files
+2024/02/07 16:55:44.854|MainProcess|INFO|convert_2_file|start|fn_success_files|File Found Count 9 Status: Success
+2024/02/07 16:55:44.854|MainProcess|INFO|convert_2_file|start|get_data_files|Get Data Files
+2024/02/07 16:55:44.854|MainProcess|INFO|convert_2_file|start|get_data_files|Read Text Files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'
+2024/02/07 16:55:44.855|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'
+2024/02/07 16:55:44.858|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'
+2024/02/07 16:55:44.860|MainProcess|INFO|convert_2_file|start|get_data_files|Read Text Files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'
+2024/02/07 16:55:44.861|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'
+2024/02/07 16:55:44.863|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'
+2024/02/07 16:55:44.864|MainProcess|INFO|convert_2_file|start|get_data_files|Read Text Files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'
+2024/02/07 16:55:44.865|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'
+2024/02/07 16:55:44.867|MainProcess|INFO|convert_2_file|start|get_data_files|Read Excel Files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'
+2024/02/07 16:55:44.869|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ADM'
+2024/02/07 16:55:44.870|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'BOS_export_BrUser'
+2024/02/07 16:55:44.871|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'BOS_export_role'
+2024/02/07 16:55:44.872|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'USER REPORT'
+2024/02/07 16:55:44.873|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'DOCIMAGE'
+2024/02/07 16:55:44.874|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'Sheet1'
+2024/02/07 16:55:44.875|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'Sheet1'
+2024/02/07 16:55:44.876|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'LDS-P_USERDETAIL'
+2024/02/07 16:55:44.878|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportAuthPerson'
+2024/02/07 16:55:44.879|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportCopc'
+2024/02/07 16:55:44.879|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportProgramTemplateAdmin'
+2024/02/07 16:55:44.880|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportProgramTemplateApprover'
+2024/02/07 16:55:44.882|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportSaleSupport'
+2024/02/07 16:55:44.882|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'ExportTeamHead'
+2024/02/07 16:55:44.883|MainProcess|INFO|convert_2_file|start|fn_data_mapping|Mapping Data Sheet: 'Sheet1'
+2024/02/07 16:55:44.884|MainProcess|INFO|convert_2_file|main|setup_project|End Project

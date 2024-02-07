@@ -31,10 +31,8 @@ class convert_file_to_csv:
     def __init__(self, method_args):
         self.template = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
         
-        verify_files.read_template()
-        
-        # self.get_list_files()
-        # self.get_data_files()
+        self.get_list_files()
+        self.get_data_files()
         # self.write_to_file()
         
         
@@ -139,11 +137,10 @@ class convert_file_to_csv:
         return self.fn_log
     
     
-    def write_to_file(self):
+    def write_to_file(self, date):
         
         logging.info('Write Data to Files')
-        date = datetime.datetime.now().strftime('%Y%m%d')
-        excel = f"{FOLDER.EXPORT}excel_{date}.xlsx" 
+        excel = f"{FOLDER.EXPORT}DD_{date}.xlsx" 
         wb = openpyxl.Workbook()
         wb.active
         
