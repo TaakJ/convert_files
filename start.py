@@ -4,6 +4,7 @@ import datetime
 import openpyxl
 import logging
 import pandas as pd
+from datetime import datetime
 from pathlib import Path
 from openpyxl.utils.dataframe import dataframe_to_rows
 from verify import FOLDER, verify_files
@@ -31,10 +32,10 @@ class convert_file_to_csv:
     def __init__(self, method_args):
         self.template = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
         
+        self.date = datetime.now()
         self.get_list_files()
         self.get_data_files()
-        # self.write_to_file()
-        
+        self.write_data_to_file()
         
     @property
     def fn_log(self):
@@ -85,32 +86,45 @@ class convert_file_to_csv:
         return self.fn_log
     
     
-    def mapping_data(call_func):
-        def fn_data_mapping(self):
-            for _dict in call_func(self):
-                try:
-                    for sheets, data in _dict['data'].items():
-                        logging.info(f"Mapping Data Sheet: '{sheets}'")
-                        ## ignore UserWarning: Data Validation no header in sheet: USER REPORT
-                        warnings.simplefilter(action='ignore', category=UserWarning)
-                        df = pd.DataFrame(data)
-                        df.columns = df.iloc[0].values
-                        df = df[1:]
-                        df = df.reset_index(drop=True)
-                        _dict.update({'data': df.to_dict('records')})
+    # def mapping_data(call_func):
+    #     def fn_data_mapping(self):
+    #         for _dict in call_func(self):
+    #             try:
+    #                 for sheets, data in _dict['data'].items():
+    #                     logging.info(f"Mapping Data Sheet: '{sheets}'")
+    #                     ## ignore UserWarning: Data Validation no header in sheet: USER REPORT
+    #                     warnings.simplefilter(action='ignore', category=UserWarning)
+    #                     df = pd.DataFrame(data)
+    #                     df.columns = df.iloc[0].values
+    #                     df = df[1:]
+    #                     df = df.reset_index(drop=True)
+    #                     _dict.update({'data': df.to_dict('list')})
                         
-                except Exception as err:
-                    _dict.update({'errors': str(err)})
+    #             except Exception as err:
+    #                 _dict.update({'errors': str(err)})
                     
-            if 'errors' in self.fn_log[0]:
-                raise CustomException(self.fn_log)
+    #         if 'errors' in self.fn_log[0]:
+    #             raise CustomException(self.fn_log)
                 
-            return self.fn_log
+    #         return self.fn_log
         
-        return fn_data_mapping
+    #     return fn_data_mapping
     
     
-    @mapping_data
+    def sample(call_func):
+        logging.info("Mock Data")
+        def fn_mock_data(self):
+            mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
+                        'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14], [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28]]
+            df = pd.DataFrame(mock_data)
+            df.columns = df.iloc[0].values
+            df = df[1:]
+            df = df.reset_index(drop=True)
+            call_func(self).append({'source': 'write', 'data': df.to_dict('list')})
+            
+        return fn_mock_data
+    
+    @sample
     def get_data_files(self):
         
         logging.info('Get Data Files')
@@ -136,41 +150,25 @@ class convert_file_to_csv:
         
         return self.fn_log
     
-    
-    def write_to_file(self, date):
+    def write_data_to_file(self):
         
         logging.info('Write Data to Files')
-        excel = f"{FOLDER.EXPORT}DD_{date}.xlsx" 
-        wb = openpyxl.Workbook()
-        wb.active
+        csv_name = f"{FOLDER.LOG}DD_{self.date.strftime('%d%m%Y')}.csv"
         
-        for _dict in self.fn_log:
-            try:
-                for name, data in _dict['data'].items():  
-                    df = pd.DataFrame(data)
-                    ## Write Excel
-                    if self.output == 1:
-                        sheet = wb.create_sheet(name)
-                        rows = dataframe_to_rows(df, index=False , header=True)
-                        for rdx, row in enumerate(rows, 1):
-                            for cdx, val in enumerate(row, 1):
-                                wf = sheet.cell(row=rdx, column=cdx)
-                                wf.value = val
-                        wb.save(excel)
-                        
-                    ## Write CSV
-                    elif self.output == 2:
-                        df = pd.DataFrame(data)
-                        csv_name = f"{FOLDER.EXPORT}{name}{date}.csv"
-                        df.to_csv(csv_name, index=False, float_format='%g')
-                        
-                    ## Write Text
-                    else:
-                        print("OK")
-                    
-            except Exception as err:
-                _dict.update({'errors': str(err)})
-                    
-        if 'errors' in self.fn_log[0]:
-            raise CustomException(self.fn_log)
-        
+        try:
+            
+            for _dict in self.fn_log:
+                if _dict['source'] == 'write':
+                    df_tmp = pd.DataFrame(_dict['data'])
+                    print(df_tmp)
+            
+            # df_data  = verify_files.read_export_daily()
+            # if df_data.empty:
+            #     a = df_data.columns.values
+            #     print(a)
+            
+            # df.to_csv(csv_name, index=False, float_format='%g')
+            
+        except Exception as err:
+            print(err)
+                

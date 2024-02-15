@@ -1,4 +1,5 @@
 import re
+import glob
 import os
 from os.path import join
 import xlrd
@@ -6,9 +7,10 @@ import shutil
 import yaml
 import logging.config
 import chardet
-from datetime import datetime, timedelta
+from datetime import datetime
 from io import StringIO
 from pathlib import Path
+import pandas as pd
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -40,9 +42,9 @@ class FOLDER(object):
         for folder in _folders:
             shutil.rmtree(folder)
     
-    @classmethod
-    def backup_folder(cls):
-        date = (datetime.now() - timedelta(days=1)).strftime('%d%m%Y')
+    @staticmethod
+    def backup_folder():
+        date = datetime.now().strftime('%d%m%Y')
         bk_path = join(FOLDER.EXPORT, f"BK_{date}")
         
         if not os.path.exists(bk_path):
@@ -163,23 +165,27 @@ class verify_files(object):
         return _dict
     
     @staticmethod
-    def read_export_tmp_daily(date):
+    def read_export_daily():
         
         data = []
-        full_path =  FOLDER.LOG + f'DD_{date}.xlsx'
-        print(full_path)
-        # workbook = xlrd.open_workbook(full_path)
-        # sheet = workbook.sheet_by_index(0)
-        # rows = sheet.get_rows()
+        full_path = FOLDER.EXPORT + 'Application Data Requirements.xlsx'
+        workbook = xlrd.open_workbook(full_path)
+        sheet = workbook.sheet_by_index(0)
+        rows = sheet.get_rows()
         
-        # next(rows)
-        # for row in rows:
-        #     if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
-        #         break
-        #     else:
-        #         data.append([cell.value for cell in row])
-                
-        # if len(data) >= 1:
-        #     print(data)
+        for row in rows:
+            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
+                break
+            else:
+                data.append([cell.value for cell in row])
         
+        df = pd.DataFrame(data)
+        df.columns = df.iloc[0].values
+        df = df[1:]
+        df = df.reset_index(drop=True)
+        df.to_dict('list')
+        
+        return df
+        
+    
 

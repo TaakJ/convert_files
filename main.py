@@ -5,10 +5,10 @@ from verify import FOLDER
 
 def setup_project():
 
-    FOLDER.backup_folder()
-    FOLDER.clear_folder()
-    FOLDER.setup_folder()
-    FOLDER.setup_log()
+    # FOLDER.backup_folder()
+    # FOLDER.clear_folder()
+    # FOLDER.setup_folder()
+    # FOLDER.setup_log()
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-s","-RAW",
