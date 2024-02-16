@@ -178,7 +178,7 @@ class verify_files(object):
                 break
             else:
                 data.append([cell.value for cell in row])
-        
+                
         df = pd.DataFrame(data)
         df.columns = df.iloc[0].values
         df = df[1:]

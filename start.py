@@ -4,6 +4,7 @@ import datetime
 import openpyxl
 import logging
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from pathlib import Path
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -35,7 +36,8 @@ class convert_file_to_csv:
         self.date = datetime.now()
         self.get_list_files()
         self.get_data_files()
-        self.write_data_to_file()
+        self.compare_data_to_file()
+        # self.write_to_file()
         
     @property
     def fn_log(self):
@@ -115,7 +117,11 @@ class convert_file_to_csv:
         logging.info("Mock Data")
         def fn_mock_data(self):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
-                        'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14], [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28]]
+                        'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42]
+                        ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
             df = df[1:]
@@ -150,25 +156,33 @@ class convert_file_to_csv:
         
         return self.fn_log
     
-    def write_data_to_file(self):
+    def compare_data_to_file(self):
         
-        logging.info('Write Data to Files')
+        logging.info('Compare Data to Files')
         csv_name = f"{FOLDER.LOG}DD_{self.date.strftime('%d%m%Y')}.csv"
         
         try:
-            
+            a = []
             for _dict in self.fn_log:
                 if _dict['source'] == 'write':
-                    df_tmp = pd.DataFrame(_dict['data'])
-                    print(df_tmp)
-            
-            # df_data  = verify_files.read_export_daily()
-            # if df_data.empty:
-            #     a = df_data.columns.values
-            #     print(a)
-            
-            # df.to_csv(csv_name, index=False, float_format='%g')
-            
+                    df_new = pd.DataFrame(_dict['data'])
+                    
+                    if glob.glob(csv_name, recursive=True):
+                        # old data record
+                        df_old = pd.read_csv(csv_name)
+                        
+                        # compare data old / new record
+                        df_new['count'] =  pd.DataFrame(np.where(df_new.ne(df_old), 'new_record', df_new), index=df_new.index, columns=df_new.columns)\
+                            .apply(lambda data: data.value_counts()['new_record'], axis=1)
+                        
+                        # new data record
+                        df_new = df_new[df_new.iloc[:,14] > 1].iloc[:, :-1]
+                
+                    # write data to csv
+                    rows = dataframe_to_rows(df_new, index=False , header=True)
+                    for rdx, row in enumerate(rows, 1):
+                        for cdx, val in enumerate(row, 1):
+                            print(val)
+                    
         except Exception as err:
             print(err)
-                
