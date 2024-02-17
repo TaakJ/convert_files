@@ -5,6 +5,7 @@ import openpyxl
 import logging
 import pandas as pd
 import numpy as np
+import csv
 from datetime import datetime
 from pathlib import Path
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -119,8 +120,9 @@ class convert_file_to_csv:
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42]
+                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),60,self.date.strftime('%Y-%m-%d %H:%M:%S'),62]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -162,27 +164,49 @@ class convert_file_to_csv:
         csv_name = f"{FOLDER.LOG}DD_{self.date.strftime('%d%m%Y')}.csv"
         
         try:
-            a = []
+            
             for _dict in self.fn_log:
                 if _dict['source'] == 'write':
-                    df_new = pd.DataFrame(_dict['data'])
+                    df_new = pd.DataFrame( _dict['data'])
                     
                     if glob.glob(csv_name, recursive=True):
                         # old data record
                         df_old = pd.read_csv(csv_name)
-                        
-                        # compare data old / new record
-                        df_new['count'] =  pd.DataFrame(np.where(df_new.ne(df_old), 'new_record', df_new), index=df_new.index, columns=df_new.columns)\
-                            .apply(lambda data: data.value_counts()['new_record'], axis=1)
-                        
-                        # new data record
+                            
+                        df_new['count'] = pd.DataFrame(np.where(df_new.ne(df_old), 'record', df_new), columns=df_new.columns)\
+                            .apply(lambda data: data.value_counts()['record'], axis=1)
                         df_new = df_new[df_new.iloc[:,14] > 1].iloc[:, :-1]
-                
-                    # write data to csv
-                    rows = dataframe_to_rows(df_new, index=False , header=True)
-                    for rdx, row in enumerate(rows, 1):
-                        for cdx, val in enumerate(row, 1):
-                            print(val)
+                        
+                        if len(df_old.index) > len(df_new.index):
+                            print(f"delete rows {list(df_old.index)}")
+                            print(f"rows {list(df_new.index)}")
+                        
+                        
+                        # # read from file
+                        # with open(csv_name, 'r') as reader:
+                        #     csvin = csv.DictReader(reader, skipinitialspace=True)
+                        #     to_update = {idx: data for idx, data in df_new.to_dict('index').items()}
+                        #     from_update = {idx: data for idx, data in enumerate(csvin)}
+                            
+                        #     # compare data
+                        #     for row_idx in to_update:
+                        #         if row_idx in from_update:
+                        #             # update record
+                        #             from_update[row_idx].update(to_update[row_idx])
+                        #             logging.info(f"Update record num: {row_idx}, data: {from_update[row_idx]}")
+                        #         else:
+                        #             # insert record
+                        #             from_update.update({row_idx: to_update[row_idx]})
+                        #             logging.info(f"Insert record num: {row_idx}, data: {from_update[row_idx]}")
+                        
+                        # # write to file
+                        # with open(csv_name, 'w', encoding='UTF8', newline='') as writer:
+                        #     csvout = csv.DictWriter(writer, csvin.fieldnames)
+                        #     csvout.writeheader()
+                        #     for row_idx in from_update:
+                        #         csvout.writerow(from_update[row_idx])
+                    else:
+                        df_new.to_csv(csv_name, index=False, header=True)
                     
         except Exception as err:
-            print(err)
+            print(f"test {err}")
