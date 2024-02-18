@@ -167,44 +167,55 @@ class convert_file_to_csv:
             
             for _dict in self.fn_log:
                 if _dict['source'] == 'write':
+                    ## new data record
                     df_new = pd.DataFrame( _dict['data'])
                     
                     if glob.glob(csv_name, recursive=True):
-                        # old data record
-                        df_old = pd.read_csv(csv_name)
+                        ## old data record
+                        df_csv = pd.read_csv(csv_name)
+                        
+                        if df_csv.index[-1] <= df_new.index[-1]:
+                            del_idx = []
+                            record = "new"
+                        else:
+                            del_idx = [idx for idx in list(df_csv.index) if idx not in list(df_new.index)]
+                            record = "remove"
                             
-                        df_new['count'] = pd.DataFrame(np.where(df_new.ne(df_old), 'record', df_new), columns=df_new.columns)\
-                            .apply(lambda data: data.value_counts()['record'], axis=1)
-                        df_new = df_new[df_new.iloc[:,14] > 1].iloc[:, :-1]
+                        ## replace new / data to record
+                        compare_df = pd.DataFrame(np.where(df_new.ne(df_csv), record, 'data'), columns=df_new.columns)
+                        compare_df['count'] = compare_df.apply(lambda data: data.value_counts()[record], axis=1)
                         
-                        if len(df_old.index) > len(df_new.index):
-                            print(f"delete rows {list(df_old.index)}")
-                            print(f"rows {list(df_new.index)}")
+                        for row_idx in [idx for idx in list(compare_df.index) if idx in list(df_new.index)]:
+                            for (col_cmp, val_cmp), (_, val_new) in zip(compare_df.items(), df_new.items()):
+                                    if val_cmp.iloc[row_idx] in ["data", "new"]:
+                                        compare_df.at[row_idx, col_cmp] = val_new.iloc[row_idx]
+                        compare_df = compare_df[compare_df.iloc[:,14] > 1].iloc[:,:-1]
                         
-                        
-                        # # read from file
-                        # with open(csv_name, 'r') as reader:
-                        #     csvin = csv.DictReader(reader, skipinitialspace=True)
-                        #     to_update = {idx: data for idx, data in df_new.to_dict('index').items()}
-                        #     from_update = {idx: data for idx, data in enumerate(csvin)}
+                        ## read from file
+                        with open(csv_name, 'r') as reader:
+                            csvin = csv.DictReader(reader, skipinitialspace=True)
+                            to_update = {idx: rows for idx, rows in df_new.to_dict('index').items()}
+                            from_update = {idx: rows for idx, rows in enumerate(csvin)}
                             
-                        #     # compare data
-                        #     for row_idx in to_update:
-                        #         if row_idx in from_update:
-                        #             # update record
-                        #             from_update[row_idx].update(to_update[row_idx])
-                        #             logging.info(f"Update record num: {row_idx}, data: {from_update[row_idx]}")
-                        #         else:
-                        #             # insert record
-                        #             from_update.update({row_idx: to_update[row_idx]})
-                        #             logging.info(f"Insert record num: {row_idx}, data: {from_update[row_idx]}")
+                            ## compare data
+                            for row_idx in to_update:
+                                if row_idx in from_update:
+                                    ## update record
+                                    from_update[row_idx].update(to_update[row_idx])
+                                    logging.info(f"Update record num: {row_idx}, data: {from_update[row_idx]}")
+                                else:
+                                    ## insert record
+                                    from_update.update({row_idx: to_update[row_idx]})
+                                    logging.info(f"Insert record num: {row_idx}, data: {from_update[row_idx]}")
                         
-                        # # write to file
-                        # with open(csv_name, 'w', encoding='UTF8', newline='') as writer:
-                        #     csvout = csv.DictWriter(writer, csvin.fieldnames)
-                        #     csvout.writeheader()
-                        #     for row_idx in from_update:
-                        #         csvout.writerow(from_update[row_idx])
+                        ## write to file
+                        with open(csv_name, 'w', encoding='UTF8', newline='') as writer:
+                            csvout = csv.DictWriter(writer, csvin.fieldnames)
+                            csvout.writeheader()
+                            for row_idx in from_update:
+                                ## check delete record
+                                if row_idx not in del_idx:
+                                    csvout.writerow(from_update[row_idx])
                     else:
                         df_new.to_csv(csv_name, index=False, header=True)
                     
