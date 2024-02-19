@@ -38,7 +38,7 @@ class convert_file_to_csv:
         self.get_list_files()
         self.get_data_files()
         self.compare_data_to_file()
-        # self.write_to_file()
+        self.write_to_file()
         
     @property
     def fn_log(self):
@@ -122,7 +122,8 @@ class convert_file_to_csv:
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),60,self.date.strftime('%Y-%m-%d %H:%M:%S'),62]
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -174,50 +175,80 @@ class convert_file_to_csv:
                         ## old data record
                         df_csv = pd.read_csv(csv_name)
                         
-                        if df_csv.index[-1] <= df_new.index[-1]:
-                            del_idx = []
-                            record = "new"
+                        ## compare data
+                        if len(df_csv.index) > len(df_new.index):
+                            skip_idx = [idx for idx in list(df_csv.index) if idx not in list(df_new.index)]
+                            compare_df = df_csv.copy().astype('object')
+                            diff_df = df_new.copy().astype('object')
+                            state = 'skip_rows'
                         else:
-                            del_idx = [idx for idx in list(df_csv.index) if idx not in list(df_new.index)]
-                            record = "remove"
-                            
-                        ## replace new / data to record
-                        compare_df = pd.DataFrame(np.where(df_new.ne(df_csv), record, 'data'), columns=df_new.columns)
-                        compare_df['count'] = compare_df.apply(lambda data: data.value_counts()[record], axis=1)
+                            skip_idx = []
+                            compare_df = df_new.copy().astype('object')
+                            diff_df = df_csv.copy().astype('object')
+                            state = 'update_rows'
                         
-                        for row_idx in [idx for idx in list(compare_df.index) if idx in list(df_new.index)]:
-                            for (col_cmp, val_cmp), (_, val_new) in zip(compare_df.items(), df_new.items()):
-                                    if val_cmp.iloc[row_idx] in ["data", "new"]:
-                                        compare_df.at[row_idx, col_cmp] = val_new.iloc[row_idx]
-                        compare_df = compare_df[compare_df.iloc[:,14] > 1].iloc[:,:-1]
+                        for row_idx in list(compare_df.index):
+                            if row_idx not in skip_idx:
+                                cnt_change = []
+                                for (_, val), (col_, val_) in zip(compare_df.items(), diff_df.items()):
+                                    if row_idx in list(val_.index):
+                                        ## check not change record
+                                        if val.iloc[row_idx] == val_.iloc[row_idx]:
+                                            compare_df.at[row_idx, col_] = val_.iloc[row_idx]
+                                            compare_df.at[row_idx, 'change'] = 0
+                                        else:
+                                            ## check change record
+                                            cnt_change += ['change']
+                                            if len(cnt_change) == 1 and col_ == 'LastUpdatedDate':
+                                                if state == 'update_rows':
+                                                    compare_df.at[row_idx, col_] = val_.iloc[row_idx]
+                                                else:
+                                                    compare_df.at[row_idx, col_] = val.iloc[row_idx]
+                                            else:
+                                                if state == 'skip_rows':
+                                                    compare_df.at[row_idx, col_] = val_.iloc[row_idx]
+                                                else:
+                                                    compare_df.at[row_idx, col_] = val.iloc[row_idx]
+                                            compare_df.at[row_idx, 'change'] = len(cnt_change)
+                                    else:
+                                        ## check new record
+                                        compare_df.at[row_idx, col_] = val.iloc[row_idx]
+                                        compare_df.at[row_idx, 'change'] = 14
+                            else:
+                                ## check delete record
+                                compare_df.iloc[row_idx] = 'skip_record'
+                                compare_df.at[row_idx, 'change'] = 14
+                        compare_df = compare_df[compare_df.iloc[:,14] > 1].iloc[:, :-1]
                         
-                        ## read from file
+                        # read from file
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
-                            to_update = {idx: rows for idx, rows in df_new.to_dict('index').items()}
+                            to_update = {idx: rows for idx, rows in compare_df.to_dict('index').items()}
                             from_update = {idx: rows for idx, rows in enumerate(csvin)}
                             
-                            ## compare data
+                            ## replace data in files
                             for row_idx in to_update:
                                 if row_idx in from_update:
-                                    ## update record
+                                    ## update record in files
                                     from_update[row_idx].update(to_update[row_idx])
                                     logging.info(f"Update record num: {row_idx}, data: {from_update[row_idx]}")
                                 else:
-                                    ## insert record
+                                    ## insert record in files
                                     from_update.update({row_idx: to_update[row_idx]})
                                     logging.info(f"Insert record num: {row_idx}, data: {from_update[row_idx]}")
                         
                         ## write to file
-                        with open(csv_name, 'w', encoding='UTF8', newline='') as writer:
+                        with open(csv_name, 'w', newline='') as writer:
                             csvout = csv.DictWriter(writer, csvin.fieldnames)
                             csvout.writeheader()
                             for row_idx in from_update:
-                                ## check delete record
-                                if row_idx not in del_idx:
+                                if row_idx not in skip_idx:
                                     csvout.writerow(from_update[row_idx])
                     else:
                         df_new.to_csv(csv_name, index=False, header=True)
                     
         except Exception as err:
-            print(f"test {err}")
+            print(f"err: {err}")
+            
+    def write_to_file(self):
+        print("write to files")
