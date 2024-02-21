@@ -1,5 +1,4 @@
 import re
-import glob
 import os
 from os.path import join
 import xlrd
@@ -15,17 +14,18 @@ import pandas as pd
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
 
-class FOLDER(object):
+class FOLDER:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
+    TEMPLATE    = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
     
     @staticmethod
     def setup_log():
         _yaml = None
         if os.path.exists(LOGGER_CONFIG):
-            with open(LOGGER_CONFIG, 'r') as f:
-                _yaml = yaml.safe_load(f)
+            with open(LOGGER_CONFIG, 'r') as logger:
+                _yaml = yaml.safe_load(logger)
                 logging.config.dictConfig(_yaml)
         else:
             raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
@@ -59,12 +59,11 @@ class FOLDER(object):
                 if files.endswith((".xlsx",'.log')):
                     shutil.copy2(join(folder, files), bk_path)
                     
-            
-class verify_files(object):
+                    
+class verify_files(FOLDER):
     
     @staticmethod
     def clean_lines_excel(full_path):
-        
         workbook = xlrd.open_workbook(full_path)
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
         
@@ -74,29 +73,9 @@ class verify_files(object):
             for row in range(0, cells.nrows):
                 _dict = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
                 yield _dict
-                
-    @classmethod
-    def generate_excel_dataframe(cls, full_path):
-        
-        _dict = {}
-        clean_data = iter(cls.clean_lines_excel(full_path))
-        while True:
-            try:
-                for sheets, data in next(clean_data).items():
-                    if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
-                        if sheets not in _dict:
-                            _dict[sheets] = [data]
-                        else:
-                            _dict[sheets].append(data)
-                            
-            except StopIteration:
-                break
-            
-        return _dict
-    
+
     @staticmethod
     def clean_lines_text(full_path):
-        
         sheets =  str(Path(full_path).stem).upper()
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
@@ -111,10 +90,25 @@ class verify_files(object):
             if line_regex != []:
                 _dict = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
                 yield _dict
+    
+    @classmethod
+    def generate_excel_dataframe(cls, full_path):
+        _dict = {}
+        clean_data = iter(cls.clean_lines_excel(full_path))
+        while True:
+            try:
+                for sheets, data in next(clean_data).items():
+                    if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
+                        if sheets not in _dict:
+                            _dict[sheets] = [data]
+                        else:
+                            _dict[sheets].append(data)
+            except StopIteration:
+                break
+        return _dict
                 
     @classmethod
     def generate_text_dataframe(cls, full_path):
-        
         _dict = {}
         line_regex = iter(cls.clean_lines_text(full_path))
         
@@ -146,11 +140,10 @@ class verify_files(object):
                                     clean_data.extend(value)
                                 else:
                                     clean_data.append(value)
-                    
                     ## ADM ##     
-                    elif sheets == 'ADM':
+                    elif sheets == 'ADM': 
                         clean_data = data
-                    
+                        
                     if sheets not in _dict:
                         _dict[sheets] = [clean_data]
                     else:
@@ -160,13 +153,11 @@ class verify_files(object):
                 rows += 1
                 
             except StopIteration:
-                break
-        
+                break  
         return _dict
     
     @staticmethod
     def read_export_daily():
-        
         data = []
         full_path = FOLDER.EXPORT + 'Application Data Requirements.xlsx'
         workbook = xlrd.open_workbook(full_path)
