@@ -28,10 +28,10 @@ from datetime import datetime
 class start_project(convert_2_file):
     def __init__(self):
         
-        self.backup_folder()
-        self.clear_folder()
-        self.setup_folder()
-        self.setup_log()
+        # self.setup_log()
+        # self.backup_folder()
+        # self.clear_folder()
+        # self.setup_folder()
         
         try:
             logging.info("Start Project")
@@ -40,10 +40,10 @@ class start_project(convert_2_file):
             
         except CustomException as err:  
             logging.error("Error Exception")     
-            err_list = iter(err)
+            err_ = iter(err)
             while True:
                 try:
-                    msg_err = next(err_list)
+                    msg_err = next(err_)
                     logging.error(msg_err)
                 except StopIteration:
                     break

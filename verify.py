@@ -10,6 +10,7 @@ from datetime import datetime
 from io import StringIO
 from pathlib import Path
 import pandas as pd
+from itertools import zip_longest
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -67,12 +68,12 @@ class verify_files(FOLDER):
         workbook = xlrd.open_workbook(full_path)
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
         
-        _dict = {}
+        key = {}
         for sheets in sheet_list:
             cells = workbook.sheet_by_name(sheets)
             for row in range(0, cells.nrows):
-                _dict = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
-                yield _dict
+                key = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
+                yield key
 
     @staticmethod
     def clean_lines_text(full_path):
@@ -82,34 +83,73 @@ class verify_files(FOLDER):
         files.seek(0)
         decode_data = StringIO(files.read().decode(encoded))
         
-        _dict = {}
+        key = {}
         for line in decode_data:
             regex = re.compile(r'\w+.*')
             line_regex = regex.findall(line)
             
             if line_regex != []:
-                _dict = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
-                yield _dict
+                key = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
+                yield key
     
+    @staticmethod
+    def generate_tmp_dataframe(csv_df, new_df):
+        
+        if len(csv_df.index) > len(new_df.index):
+            skip_rows = [idx for idx in list(csv_df.index) if idx not in list(new_df.index)]
+        else:
+            skip_rows = []
+        
+        compare_df = pd.DataFrame()
+        for csv_idx, new_idx in zip_longest(list(csv_df.index), list(new_df.index)):
+            if csv_idx not in skip_rows:
+                cnt = 0
+                value = []
+                for (col, val), (_, val_diff) in zip_longest(csv_df.items(), new_df.items()):
+                    if csv_idx == new_idx:
+                        if val.iloc[new_idx] == val_diff.iloc[new_idx]:
+                            ## not change record
+                            compare_df.at[new_idx, col] = val.iloc[new_idx]
+                        else:
+                            ## change record
+                            cnt += 1
+                            a = {new_idx: cnt}
+                            print(a)
+                            # a = list({key[new_idx]: key for key in value}.values())
+                            # print(value)
+                            
+                                
+                            compare_df.at[new_idx, col] = 'change'
+                    elif csv_idx is None and new_df is not None:
+                        ## insert record
+                        compare_df.at[new_idx, col] = val_diff.iloc[new_idx]
+            else:
+                ## skip record
+                print(f"skip rows = {csv_idx}")
+        
+        print(compare_df)
+        
+        return ''
+        
     @classmethod
     def generate_excel_dataframe(cls, full_path):
-        _dict = {}
+        key = {}
         clean_data = iter(cls.clean_lines_excel(full_path))
         while True:
             try:
                 for sheets, data in next(clean_data).items():
                     if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
-                        if sheets not in _dict:
-                            _dict[sheets] = [data]
+                        if sheets not in key:
+                            key[sheets] = [data]
                         else:
-                            _dict[sheets].append(data)
+                            key[sheets].append(data)
             except StopIteration:
                 break
-        return _dict
+        return key
                 
     @classmethod
     def generate_text_dataframe(cls, full_path):
-        _dict = {}
+        key = {}
         line_regex = iter(cls.clean_lines_text(full_path))
         
         rows = 0
@@ -144,18 +184,16 @@ class verify_files(FOLDER):
                     elif sheets == 'ADM': 
                         clean_data = data
                         
-                    if sheets not in _dict:
-                        _dict[sheets] = [clean_data]
+                    if sheets not in key:
+                        key[sheets] = [clean_data]
                     else:
-                        _dict[sheets].append(clean_data)
-                    _dict[sheets] = list(filter(lambda data: data != [], _dict[sheets]))
-                
+                        key[sheets].append(clean_data)
                 rows += 1
                 
             except StopIteration:
                 break  
-        return _dict
-    
+        return key
+
     @staticmethod
     def read_export_daily():
         data = []
