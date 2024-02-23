@@ -6,32 +6,10 @@ import logging
 import pandas as pd
 from pathlib import Path
 from openpyxl.utils.dataframe import dataframe_to_rows
-from verify import verify_files
+from verify import validate_files
+from exception import CustomException
 
-class CustomException(Exception):
-    def __init__(self, err_):
-        self.n = 0
-        
-        # for key, value in kwargs.items():
-        #     setattr(self, key, value)
-        
-        self.msg_err = self.generate_meg_err(err_)
-        
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        return next(self.msg_err)
-    
-    def generate_meg_err(self, err_):
-        for i in  range(len(err_)):
-            # msg_err = f"Filename: '{err_[i]['full_path']}' Status: '{err_[i]['status']}' Error: '{err_[i].get('errors')}'"
-            # if err_[i]['status'] == 'success':
-            #     self.n += 1
-            msg_err = err_[i].get('errors')
-            yield msg_err
-
-class convert_2_file(verify_files):
+class convert_2_file(validate_files):
     def __init__(self, *args, **kwargs):
         super().__init__()
         
@@ -75,7 +53,6 @@ class convert_2_file(verify_files):
                 logging.info(f"file found count {len(success_file)} status: success")
                 
             return self.logging
-        
         return fn_success_files
     
     @check_success_files
@@ -97,9 +74,9 @@ class convert_2_file(verify_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -123,10 +100,10 @@ class convert_2_file(verify_files):
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"read excel files: '{full_path}'")
-                    list_data = self.generate_excel_dataframe(full_path)
+                    list_data = self.generate_excel_df(full_path)
                 else:
                     logging.info(f"read text files: '{full_path}'")
-                    list_data = self.generate_text_dataframe(full_path)
+                    list_data = self.generate_txt_df(full_path)
                     
                 status = 'successed'
                 key.update({'data': list_data, 'status': status})
@@ -153,7 +130,7 @@ class convert_2_file(verify_files):
                     
                     if glob.glob(csv_name, recursive=True):
                         csv_df = pd.read_csv(csv_name)
-                        to_update = self.generate_tmp_dataframe(csv_df, new_df)
+                        to_update = self.generate_tmp_df(csv_df, new_df)
                         
                         ## read from file
                         with open(csv_name, 'r') as reader:
@@ -201,7 +178,7 @@ class convert_2_file(verify_files):
                 
                 if status == 'successed':
                     csv_df = pd.read_csv(filename)
-                    self.generate_target_dataframe(csv_df)
+                    self.compare_target(target_name, csv_df)
                 else:
                     raise CustomException(self.logging)
                 

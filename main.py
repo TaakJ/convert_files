@@ -1,8 +1,8 @@
 import argparse
 import logging
-from start import convert_2_file, CustomException
 from datetime import datetime
-
+from start import convert_2_file
+from exception import CustomException
 
 # def setup_project():
 #     parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ class start_project(convert_2_file):
                     logging.error(msg_err)
                 except StopIteration:
                     break
-            logging.error(f"File Found Count {err.n} Status: Success")
+            logging.error(f"file found count {err.n} status: successed")
         
         finally:
             logging.info("End Project")

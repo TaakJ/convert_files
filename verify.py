@@ -61,14 +61,15 @@ class FOLDER:
                     shutil.copy2(join(folder, files), bk_path)
                     
                     
-class verify_files(FOLDER):
+class validate_files(FOLDER):
+    
     skip_rows = []
     
     @staticmethod
-    def read_export_daily():
-        data = []
-        full_path = FOLDER.EXPORT + 'Application Data Requirements.xlsx'
-        workbook = xlrd.open_workbook(full_path)
+    def read_export_file_daily(target_name):
+        
+        list_data = []
+        workbook = xlrd.open_workbook(target_name)
         sheet = workbook.sheet_by_index(0)
         rows = sheet.get_rows()
         
@@ -76,15 +77,20 @@ class verify_files(FOLDER):
             if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
                 break
             else:
-                data.append([cell.value for cell in row])
+                list_data.append(row)
                 
-        df = pd.DataFrame(data)
-        df.columns = df.iloc[0].values
-        df = df[1:]
-        df = df.reset_index(drop=True)
-        df.to_dict('list')
+        target_df = pd.DataFrame(list_data)
+        target_df.columns = target_df.iloc[0].values
+        target_df = target_df[1:]
+        target_df = target_df.reset_index(drop=True)
         
-        return df
+        return target_df
+    
+    @classmethod
+    def compare_target(cls, target_name, csv_df):
+        
+        target_df = cls.read_export_file_daily(target_name)
+        print(target_df)
     
     @staticmethod
     def clean_lines_excel(full_path):
@@ -97,9 +103,9 @@ class verify_files(FOLDER):
             for row in range(0, cells.nrows):
                 key = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
                 yield key
-
+                
     @staticmethod
-    def clean_lines_text(full_path):
+    def clean_lines_txt(full_path):
         sheets =  str(Path(full_path).stem).upper()
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
@@ -116,9 +122,10 @@ class verify_files(FOLDER):
                 yield key
     
     @classmethod
-    def generate_excel_dataframe(cls, full_path):
+    def generate_excel_df(cls, full_path):
         key = {}
         clean_data = iter(cls.clean_lines_excel(full_path))
+        
         while True:
             try:
                 for sheets, data in next(clean_data).items():
@@ -132,9 +139,9 @@ class verify_files(FOLDER):
         return key
                 
     @classmethod
-    def generate_text_dataframe(cls, full_path):
+    def generate_txt_df(cls, full_path):
         key = {}
-        line_regex = iter(cls.clean_lines_text(full_path))
+        line_regex = iter(cls.clean_lines_txt(full_path))
         
         rows = 0
         while True:
@@ -179,7 +186,7 @@ class verify_files(FOLDER):
         return key
     
     @classmethod
-    def generate_tmp_dataframe(cls, csv_df, new_df):
+    def generate_tmp_df(cls, csv_df, new_df):
         
         if len(csv_df.index) > len(new_df.index):
             cls.skip_rows = [idx for idx in list(csv_df.index) if idx not in list(new_df.index)]
@@ -196,7 +203,7 @@ class verify_files(FOLDER):
                             df.at[new_idx, col] = val.iloc[new_idx]
                         else:
                             i += 1
-                            cnt_change.append({new_idx:i})
+                            cnt_change += [{new_idx:i}]
                             ## not change record / but change only column LastUpdatedDate
                             if len(cnt_change) == 1 and col == 'LastUpdatedDate':
                                 df.at[new_idx, col] = val.iloc[new_idx]
@@ -217,8 +224,3 @@ class verify_files(FOLDER):
         to_update = {idx: rows for idx, rows in df.to_dict('index').items()}
         
         return to_update
-    
-    @classmethod
-    def generate_target_dataframe(cls, csv_df):
-        print(csv_df)
-        
