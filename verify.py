@@ -62,6 +62,29 @@ class FOLDER:
                     
                     
 class verify_files(FOLDER):
+    skip_rows = []
+    
+    @staticmethod
+    def read_export_daily():
+        data = []
+        full_path = FOLDER.EXPORT + 'Application Data Requirements.xlsx'
+        workbook = xlrd.open_workbook(full_path)
+        sheet = workbook.sheet_by_index(0)
+        rows = sheet.get_rows()
+        
+        for row in rows:
+            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
+                break
+            else:
+                data.append([cell.value for cell in row])
+                
+        df = pd.DataFrame(data)
+        df.columns = df.iloc[0].values
+        df = df[1:]
+        df = df.reset_index(drop=True)
+        df.to_dict('list')
+        
+        return df
     
     @staticmethod
     def clean_lines_excel(full_path):
@@ -92,45 +115,6 @@ class verify_files(FOLDER):
                 key = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
                 yield key
     
-    @staticmethod
-    def generate_tmp_dataframe(csv_df, new_df):
-        
-        if len(csv_df.index) > len(new_df.index):
-            skip_rows = [idx for idx in list(csv_df.index) if idx not in list(new_df.index)]
-        else:
-            skip_rows = []
-        
-        compare_df = pd.DataFrame()
-        for csv_idx, new_idx in zip_longest(list(csv_df.index), list(new_df.index)):
-            if csv_idx not in skip_rows:
-                cnt = 0
-                value = []
-                for (col, val), (_, val_diff) in zip_longest(csv_df.items(), new_df.items()):
-                    if csv_idx == new_idx:
-                        if val.iloc[new_idx] == val_diff.iloc[new_idx]:
-                            ## not change record
-                            compare_df.at[new_idx, col] = val.iloc[new_idx]
-                        else:
-                            ## change record
-                            cnt += 1
-                            a = {new_idx: cnt}
-                            print(a)
-                            # a = list({key[new_idx]: key for key in value}.values())
-                            # print(value)
-                            
-                                
-                            compare_df.at[new_idx, col] = 'change'
-                    elif csv_idx is None and new_df is not None:
-                        ## insert record
-                        compare_df.at[new_idx, col] = val_diff.iloc[new_idx]
-            else:
-                ## skip record
-                print(f"skip rows = {csv_idx}")
-        
-        print(compare_df)
-        
-        return ''
-        
     @classmethod
     def generate_excel_dataframe(cls, full_path):
         key = {}
@@ -193,28 +177,48 @@ class verify_files(FOLDER):
             except StopIteration:
                 break  
         return key
-
-    @staticmethod
-    def read_export_daily():
-        data = []
-        full_path = FOLDER.EXPORT + 'Application Data Requirements.xlsx'
-        workbook = xlrd.open_workbook(full_path)
-        sheet = workbook.sheet_by_index(0)
-        rows = sheet.get_rows()
-        
-        for row in rows:
-            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
-                break
-            else:
-                data.append([cell.value for cell in row])
-                
-        df = pd.DataFrame(data)
-        df.columns = df.iloc[0].values
-        df = df[1:]
-        df = df.reset_index(drop=True)
-        df.to_dict('list')
-        
-        return df
-        
     
-
+    @classmethod
+    def generate_tmp_dataframe(cls, csv_df, new_df):
+        
+        if len(csv_df.index) > len(new_df.index):
+            cls.skip_rows = [idx for idx in list(csv_df.index) if idx not in list(new_df.index)]
+            
+        df = pd.DataFrame()
+        for csv_idx, new_idx in zip_longest(list(csv_df.index), list(new_df.index)):
+            if csv_idx not in cls.skip_rows:
+                i = 0
+                cnt_change = []
+                for (col, val), (_, val_diff) in zip_longest(csv_df.items(), new_df.items()):
+                    if csv_idx == new_idx:
+                        if val.iloc[new_idx] == val_diff.iloc[new_idx]:
+                            ## not change record
+                            df.at[new_idx, col] = val.iloc[new_idx]
+                        else:
+                            i += 1
+                            cnt_change.append({new_idx:i})
+                            ## not change record / but change only column LastUpdatedDate
+                            if len(cnt_change) == 1 and col == 'LastUpdatedDate':
+                                df.at[new_idx, col] = val.iloc[new_idx]
+                            else:
+                                ## change record
+                                df.at[new_idx, col] = val_diff.iloc[new_idx]
+                            df.at[new_idx, 'change'] = len(cnt_change)
+                                
+                    elif csv_idx is None and new_df is not None:
+                        ## insert record
+                        df.at[new_idx, col] = val_diff.iloc[new_idx]
+                        df.at[new_idx, 'change'] = 14
+            else:
+                df.loc[csv_idx] = 'skip_rows'
+                df.at[csv_idx, 'change'] = 14
+        
+        df = df.loc[df['change'] > 1].drop(['change'], axis=1)
+        to_update = {idx: rows for idx, rows in df.to_dict('index').items()}
+        
+        return to_update
+    
+    @classmethod
+    def generate_target_dataframe(cls, csv_df):
+        print(csv_df)
+        
