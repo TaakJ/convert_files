@@ -1,8 +1,8 @@
 import glob
 import warnings
-import openpyxl
 import csv
 import logging
+import openpyxl
 import pandas as pd
 from pathlib import Path
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -72,11 +72,11 @@ class convert_2_file(validate_files):
         def fn_mock_data(self):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        # [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -100,10 +100,10 @@ class convert_2_file(validate_files):
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"read excel files: '{full_path}'")
-                    list_data = self.generate_excel_df(full_path)
+                    list_data = self.generate_excel_data(full_path)
                 else:
                     logging.info(f"read text files: '{full_path}'")
-                    list_data = self.generate_txt_df(full_path)
+                    list_data = self.generate_text_data(full_path)
                     
                 status = 'successed'
                 key.update({'data': list_data, 'status': status})
@@ -129,19 +129,19 @@ class convert_2_file(validate_files):
                     key.update({'full_path': csv_name, 'status': status})
                     
                     if glob.glob(csv_name, recursive=True):
-                        csv_df = pd.read_csv(csv_name)
-                        to_update = self.generate_tmp_df(csv_df, new_df)
+                        tmp_df = pd.read_csv(csv_name)
+                        to_tmp = self.update_data_tmp(tmp_df, new_df)
                         
                         ## read from file
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
                             rows = {idx: rows for idx, rows in enumerate(csvin)}
-                            for idx in to_update:
+                            for idx in to_tmp:
                                 if idx in rows:
-                                    rows[idx].update(to_update[idx])
+                                    rows[idx].update(to_tmp[idx])
                                     logging.info(f"update record num: {idx}, data: {rows[idx]}")
                                 else:
-                                    rows.update({idx: to_update[idx]})
+                                    rows.update({idx: to_tmp[idx]})
                                     logging.info(f"insert record num: {idx}, data: {rows[idx]}")
                                     
                         ## write to file
@@ -171,14 +171,20 @@ class convert_2_file(validate_files):
         logging.info("write data to target files")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         
+        workbook = openpyxl.load_workbook(target_name)
+        get_sheet = workbook.get_sheet_names()
+        sheet = workbook.get_sheet_by_name(get_sheet[0])
+        workbook.active
+
         for key in self.logging:
             if key['source'] == 'Target_file':
                 filename = key['full_path']
                 status = key['status']
                 
                 if status == 'successed':
-                    csv_df = pd.read_csv(filename)
-                    self.compare_target(target_name, csv_df)
+                    tmp_df = pd.read_csv(filename)
+                    tmp_df.set_index(['CreateDate'], inplace=True, append=True, drop = False)
+                    target_df = self.update_data_target(target_name, tmp_df)
                 else:
                     raise CustomException(self.logging)
                 
@@ -186,8 +192,17 @@ class convert_2_file(validate_files):
                     status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
                     
-                    ## write to file
-                    print(target_name)
+                    ## wirte to export file daily
+                    # rows = dataframe_to_rows(target_df, index=False , header=True)
+                    # for rdx, row in enumerate(rows, 1):
+                    #     for cdx, val in enumerate(row, 1):
+                    #         cell = sheet.cell(row=rdx, column=cdx)
+                    #         cell.value = val
+                    # workbook.save(target_name)
+                    # status = 'successed'
                     
                 except Exception as err:
                     print(err)
+                    
+                key.update({'status': status})
+                logging.info(f"write to target files status: {status}")

@@ -182,3 +182,37 @@ def compare_data_to_file(self):
                     
         except Exception as err:
             print(f"err: {err}")
+
+
+
+
+            # for c_idx, n_idx in zip_longest(list(csv_df.index), list(new_df.index)):
+        #     if c_idx not in cls.skip_rows:
+        #         i = 0
+        #         cnt_change = []
+        #         for csv, new in zip_longest(csv_df.items(), new_df.items()):
+        #             if c_idx == n_idx:
+        #                 if csv[1].iloc[n_idx] == new[1].iloc[n_idx]:
+        #                     ## not change record
+        #                     df.at[n_idx, csv[0]] = csv[1].iloc[n_idx]
+        #                 else:
+        #                     i += 1
+        #                     cnt_change += [{n_idx:i}]
+        #                     ## change only column LastUpdatedDate == not change record
+        #                     if len(cnt_change) == 1 and csv[0] == 'LastUpdatedDate':
+        #                         df.at[n_idx, csv[0]] = csv[1].iloc[n_idx]
+        #                     else:
+        #                         ## change record
+        #                         df.at[n_idx, csv[0]] = new[1].iloc[n_idx]
+        #                     df.at[n_idx, 'change'] = len(cnt_change)
+                                
+        #             elif c_idx is None and n_idx is not None:
+        #                 ## insert record
+        #                 df.at[n_idx, csv[0]] = new[1].iloc[n_idx]
+        #                 df.at[n_idx, 'change'] = 14
+        #     else:
+        #         ## skip record
+        #         df.loc[c_idx] = 'skip_rows'
+        #         df.at[c_idx, 'change'] = 14
+        
+        # df = df.loc[df['change'] > 1].drop(['change'], axis=1)
