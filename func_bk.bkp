@@ -216,3 +216,67 @@ def compare_data_to_file(self):
         #         df.at[c_idx, 'change'] = 14
         
         # df = df.loc[df['change'] > 1].drop(['change'], axis=1)
+
+
+
+         # @classmethod
+    # def update_data_tmp(cls, tmp_df, new_df):
+        
+    #     if len(tmp_df.index) > len(new_df.index):
+    #         cls.skip_rows = [idx for idx in list(tmp_df.index) if idx not in list(new_df.index)]
+        
+    #     union_index = np.union1d(tmp_df.index, new_df.index)
+    #     ## set old record
+    #     tmp_df = tmp_df.reindex(index=union_index, columns=tmp_df.columns)
+        
+    #     ## set new record
+    #     new_df = new_df.reindex(index=union_index, columns=new_df.columns)
+        
+    #     ## set column change / skip in new_df 
+    #     new_df['change'] = pd.DataFrame(np.where(new_df.ne(tmp_df), True, False), index=new_df.index, columns=new_df.columns)\
+    #         .apply(lambda data: data.value_counts()[True], axis=1)
+    #     new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
+        
+    #     ## set column change / skip in tmp_df 
+    #     tmp_df['change'] = new_df['change']
+    #     tmp_df['skip'] = tmp_df.apply(lambda x: x.isna()).all(axis=1)
+        
+    #     for idx in union_index:
+    #         if idx not in cls.skip_rows:
+    #             for tmp, new in zip(tmp_df.items(), new_df.items()):
+    #                 if tmp_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
+    #                     if new_df.loc[idx, 'change'] <= 1:
+    #                         ## not change rows
+    #                         tmp_df.at[idx, tmp[0]] = tmp[1].iloc[idx]
+    #                     else:
+    #                         ## update rows
+    #                         tmp_df.at[idx, tmp[0]] = new[1].iloc[idx]
+    #                 else:
+    #                     ## insert rows
+    #                     tmp_df.at[idx, tmp[0]] = new[1].iloc[idx]
+    #         else:
+    #             ## delete rows
+    #             continue
+            
+    #     tmp_df = tmp_df.loc[tmp_df['change'] > 1].drop(['change', 'skip'], axis=1)
+    #     to_tmp = {idx: rows for idx, rows in tmp_df.to_dict('index').items()}
+        
+    #     return to_tmp
+
+
+     # read file excel daily
+        # workbook = xlrd.open_workbook(target_name)
+        # sheet = workbook.sheet_by_index(0)
+        # rows = sheet.get_rows()
+        
+        # list_target =[]
+        # for row in rows:
+        #     if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
+        #         break
+        #     else:
+        #         list_target += [[cell.value for cell in row]] 
+                
+        # target_df = pd.DataFrame(list_target)
+        # target_df.columns = target_df.iloc[0].values
+        # target_df = target_df[1:]
+        # target_df = target_df.reset_index(drop=True)

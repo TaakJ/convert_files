@@ -72,9 +72,9 @@ class convert_2_file(validate_files):
         def fn_mock_data(self):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        # [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -130,18 +130,18 @@ class convert_2_file(validate_files):
                     
                     if glob.glob(csv_name, recursive=True):
                         tmp_df = pd.read_csv(csv_name)
-                        to_tmp = self.update_data_tmp(tmp_df, new_df)
+                        to_write = self.update_data(tmp_df, new_df)
                         
                         ## read from file
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
                             rows = {idx: rows for idx, rows in enumerate(csvin)}
-                            for idx in to_tmp:
+                            for idx in to_write:
                                 if idx in rows:
-                                    rows[idx].update(to_tmp[idx])
+                                    rows[idx].update(to_write[idx])
                                     logging.info(f"update record num: {idx}, data: {rows[idx]}")
                                 else:
-                                    rows.update({idx: to_tmp[idx]})
+                                    rows.update({idx: to_write[idx]})
                                     logging.info(f"insert record num: {idx}, data: {rows[idx]}")
                                     
                         ## write to file
@@ -183,8 +183,7 @@ class convert_2_file(validate_files):
                 
                 if status == 'successed':
                     tmp_df = pd.read_csv(filename)
-                    tmp_df.set_index(['CreateDate'], inplace=True, append=True, drop = False)
-                    target_df = self.update_data_target(target_name, tmp_df)
+                    to_write = self.get_data_target(target_name, tmp_df)
                 else:
                     raise CustomException(self.logging)
                 
@@ -192,6 +191,7 @@ class convert_2_file(validate_files):
                     status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
                     
+                    print(to_write)
                     ## wirte to export file daily
                     # rows = dataframe_to_rows(target_df, index=False , header=True)
                     # for rdx, row in enumerate(rows, 1):

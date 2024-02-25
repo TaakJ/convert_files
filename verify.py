@@ -11,6 +11,7 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from collections import Counter
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -63,20 +64,6 @@ class FOLDER:
                     
 class validate_files(FOLDER):
     skip_rows = []
-    
-    # @staticmethod
-    # def read_export_file_daily(target_name):
-    #     list_target = []
-    #     workbook = xlrd.open_workbook(target_name)
-    #     sheet = workbook.sheet_by_index(0)
-    #     rows = sheet.get_rows()
-        
-    #     for row in rows:
-    #         if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
-    #             break
-    #         else:
-    #             list_target += [[cell.value for cell in row]] 
-    #     return list_target
     
     @staticmethod
     def clean_lines_excel(full_path):
@@ -171,75 +158,76 @@ class validate_files(FOLDER):
                 break  
         return key
     
+    
     @classmethod
-    def update_data_tmp(cls, tmp_df, new_df):
+    def update_data(cls, old_df, new_df):
         
-        if len(tmp_df.index) > len(new_df.index):
-            cls.skip_rows = [idx for idx in list(tmp_df.index) if idx not in list(new_df.index)]
+        if len(old_df.index) > len(new_df.index):
+            cls.skip_rows = [idx for idx in list(old_df.index) if idx not in list(new_df.index)]
         
-        union_index = np.union1d(tmp_df.index, new_df.index)
+        union_index = np.union1d(old_df.index, new_df.index)
         ## set old record
-        tmp_df = tmp_df.reindex(index=union_index, columns=tmp_df.columns)
+        old_df = old_df.reindex(index=union_index, columns=old_df.columns)
         
         ## set new record
         new_df = new_df.reindex(index=union_index, columns=new_df.columns)
         
         ## set column change / skip in new_df 
-        new_df['change'] = pd.DataFrame(np.where(new_df.ne(tmp_df), True, False), index=new_df.index, columns=new_df.columns)\
+        new_df['change'] = pd.DataFrame(np.where(new_df.ne(old_df), True, False), index=new_df.index, columns=new_df.columns)\
             .apply(lambda data: data.value_counts()[True], axis=1)
         new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
         
-        ## set column change / skip in tmp_df 
-        tmp_df['change'] = new_df['change']
-        tmp_df['skip'] = tmp_df.apply(lambda x: x.isna()).all(axis=1)
+        ## set column change / skip in old_df 
+        old_df['change'] = new_df['change']
+        old_df['skip'] = old_df.apply(lambda x: x.isna()).all(axis=1)
         
         for idx in union_index:
             if idx not in cls.skip_rows:
-                for tmp, new in zip(tmp_df.items(), new_df.items()):
-                    if tmp_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
+                for old, new in zip(old_df.items(), new_df.items()):
+                    if old_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
                         if new_df.loc[idx, 'change'] <= 1:
                             ## not change rows
-                            tmp_df.at[idx, tmp[0]] = tmp[1].iloc[idx]
+                            old_df.at[idx, old[0]] = old[1].iloc[idx]
                         else:
                             ## update rows
-                            tmp_df.at[idx, tmp[0]] = new[1].iloc[idx]
+                            old_df.at[idx, old[0]] = new[1].iloc[idx]
                     else:
                         ## insert rows
-                        tmp_df.at[idx, tmp[0]] = new[1].iloc[idx]
+                        old_df.at[idx, old[0]] = new[1].iloc[idx]
             else:
                 ## delete rows
                 continue
             
-        tmp_df = tmp_df.loc[tmp_df['change'] > 1].drop(['change', 'skip'], axis=1)
-        to_tmp = {idx: rows for idx, rows in tmp_df.to_dict('index').items()}
+        old_df = old_df.loc[old_df['change'] > 1].drop(['change', 'skip'], axis=1)
+        to_write = old_df.to_dict('index')
         
-        return to_tmp
+        return to_write
     
     @classmethod
-    def update_data_target(cls, target_name, tmp_df):
+    def get_data_target(cls, target_name, tmp_df):
         
-        # read file excel daily
-        workbook = xlrd.open_workbook(target_name)
-        sheet = workbook.sheet_by_index(0)
-        rows = sheet.get_rows()
+        ## read file excel daily
+        target_df = pd.read_excel(target_name)
         
-        list_target =[]
-        for row in rows:
-            if all([cell.ctype in (xlrd.XL_CELL_EMPTY, xlrd.XL_CELL_BLANK) for cell in row]):
-                break
-            else:
-                list_target += [[cell.value for cell in row]] 
+        if not target_df.empty:
+            ## select data row for daily
+            # date = tmp_df['CreateDate'].unique()
+            # mask = target_df['CreateDate'].isin(date)
+            # target_df = target_df[mask].reset_index(drop=True)
+            
+            # target = cls.update_data(target_df, tmp_df)
+            # print(to_write)
+            
+            target = {idx: rows for idx, rows in target_df.to_dict('index').items()}
+            to_write = target_df.to_dict('index')
+            
+            for key, value in target.items():
+                if key in to_write:
+                    i = max(to_write) + 1
+                    to_write[i] = value
+        else:
+            target_df = tmp_df
+            to_write = target_df.to_dict('index')
         
-        target_df = pd.DataFrame(list_target)
-        target_df.columns = target_df.iloc[0].values
-        target_df = target_df[1:]
-        target_df = target_df.reset_index(drop=True)
-        target_df.set_index(['CreateDate'],inplace=True, append=True, drop = False)
-        
-        print(target_df)
-        print(tmp_df)
-        
-        
-        
-        return 'target_df'
+        return to_write
             
