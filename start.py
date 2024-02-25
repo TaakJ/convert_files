@@ -74,7 +74,7 @@ class convert_2_file(validate_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -175,34 +175,34 @@ class convert_2_file(validate_files):
         get_sheet = workbook.get_sheet_names()
         sheet = workbook.get_sheet_by_name(get_sheet[0])
         workbook.active
-
+        
         for key in self.logging:
-            if key['source'] == 'Target_file':
-                filename = key['full_path']
-                status = key['status']
-                
-                if status == 'successed':
-                    tmp_df = pd.read_csv(filename)
-                    to_write = self.get_data_target(target_name, tmp_df)
-                else:
-                    raise CustomException(self.logging)
-                
-                try:
+            try:
+                if key['source'] == 'Target_file':
+                    filename = key['full_path']
+                    status = key['status']
+                    
+                    if status == 'successed':
+                        tmp_df = pd.read_csv(filename)
+                        to_write = self.get_data_target(target_name, tmp_df)
+                        print(to_write)
+                    else:
+                        raise CustomException(self.logging)
+                    
                     status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
-                    
-                    print(to_write)
+                        
                     ## wirte to export file daily
-                    # rows = dataframe_to_rows(target_df, index=False , header=True)
-                    # for rdx, row in enumerate(rows, 1):
-                    #     for cdx, val in enumerate(row, 1):
+                    # for rdx, (_, data) in enumerate(to_write.items(), 2):
+                    #     for cdx, (_, val)  in enumerate(data.items(), 1):
                     #         cell = sheet.cell(row=rdx, column=cdx)
                     #         cell.value = val
                     # workbook.save(target_name)
                     # status = 'successed'
                     
-                except Exception as err:
-                    print(err)
+                    # key.update({'status': status})
+                    # logging.info(f"write to target files status: {status}")
                     
-                key.update({'status': status})
-                logging.info(f"write to target files status: {status}")
+            except Exception as err:
+                print(f"error => {err}")
+                    

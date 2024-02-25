@@ -174,7 +174,7 @@ class validate_files(FOLDER):
         
         ## set column change / skip in new_df 
         new_df['change'] = pd.DataFrame(np.where(new_df.ne(old_df), True, False), index=new_df.index, columns=new_df.columns)\
-            .apply(lambda data: data.value_counts()[True], axis=1)
+            .apply(lambda x: (x==True).sum(), axis=1)
         new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
         
         ## set column change / skip in old_df 
@@ -200,34 +200,31 @@ class validate_files(FOLDER):
             
         old_df = old_df.loc[old_df['change'] > 1].drop(['change', 'skip'], axis=1)
         to_write = old_df.to_dict('index')
-        
         return to_write
     
     @classmethod
     def get_data_target(cls, target_name, tmp_df):
         
-        ## read file excel daily
         target_df = pd.read_excel(target_name)
         
         if not target_df.empty:
+            
             ## select data row for daily
-            # date = tmp_df['CreateDate'].unique()
-            # mask = target_df['CreateDate'].isin(date)
-            # target_df = target_df[mask].reset_index(drop=True)
+            date = tmp_df['CreateDate'].unique()
+            mask = target_df['CreateDate'].isin(date)
+            target_df = target_df[mask].reset_index(drop=True)
             
-            # target = cls.update_data(target_df, tmp_df)
-            # print(to_write)
-            
-            target = {idx: rows for idx, rows in target_df.to_dict('index').items()}
+            output = cls.update_data(target_df, tmp_df)
             to_write = target_df.to_dict('index')
             
-            for key, value in target.items():
-                if key in to_write:
+            for key, value in output.items():
+                if key not in to_write:
                     i = max(to_write) + 1
                     to_write[i] = value
+                else:
+                    continue
         else:
-            target_df = tmp_df
-            to_write = target_df.to_dict('index')
-        
+            to_write = tmp_df.to_dict('index')
+            
         return to_write
             
