@@ -5,7 +5,6 @@ import logging
 import openpyxl
 import pandas as pd
 from pathlib import Path
-from openpyxl.utils.dataframe import dataframe_to_rows
 from verify import validate_files
 from exception import CustomException
 
