@@ -73,7 +73,7 @@ class convert_2_file(validate_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -190,7 +190,11 @@ class convert_2_file(validate_files):
                     status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
                     
-                    # ## wirte to export file daily
+                    print()
+                    for k, v in output.items():
+                        print(k + 2)
+                    
+                    # # wirte to export file daily
                     # for rdx, (_, data) in enumerate(output.items(), 2):
                     #     for cdx, (_, value)  in enumerate(data.items(), 1):
                     #             cell = sheet.cell(row=rdx, column=cdx)
@@ -201,8 +205,8 @@ class convert_2_file(validate_files):
                     # workbook.save(target_name)
                     # status = 'successed'
                     
-                    key.update({'status': status})
-                    logging.info(f"write to target files status: {status}")
+                    # key.update({'status': status})
+                    # logging.info(f"write to target files status: {status}")
                     
             except Exception as err:
                 key.update({'errors': err})

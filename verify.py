@@ -206,30 +206,43 @@ class validate_files(FOLDER):
         target_df = pd.read_excel(target_name)
         
         if not target_df.empty:
-            ## select row with daily 
+            ## select row with daily for compare
             date = tmp_df['CreateDate'].unique()
-            mask = target_df['CreateDate'].isin(date)
-            target_df = target_df[mask].reset_index(drop=True)
-            compare_target = target_df.to_dict('index')
+            output = target_df[~target_df['CreateDate'].isin(date)]
+            mask_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
             
-            ## compare data with tmp
-            compare_tmp = cls.update_data(target_df, tmp_df)
+            ## mark data for compare with tmp
+            compare_tmp = cls.update_data(mask_df, tmp_df)
+            mask_diff = mask_df.to_dict('index')
             
-            rows = 2
             for key, value in compare_tmp.items():
                 if key not in cls.skip_rows:
                     try:
-                        if value != compare_target[key]:
-                            compare_target.pop(key)
-                        compare_target[key] = value
+                        if value != mask_diff[key]:
+                            mask_diff.pop(key)
+                        mask_diff[key] = value
                     except KeyError:
-                        compare_target[key] = value
+                        mask_diff[key] = value
                 else:
-                    if value == compare_target[key]:
-                        compare_target.pop(key)
-                        
-            ## update value for skip rows 
-            cls.skip_rows = [rows + i for i in cls.skip_rows]
+                    if value == mask_diff[key]:
+                        mask_diff.pop(key)
+            
+            ## update data for wirte to target
+            print(f"before {cls.skip_rows}")
+            output = output.to_dict('index')
+            if output != {}:
+                max_rows = max(output)
+                for key, value in mask_diff.items():
+                    max_rows += 1
+                    output[max_rows] = value
+            else:
+                output = mask_diff
+            
+            for i, x in enumerate(cls.skip_rows):
+                cls.skip_rows[i] = max(output) + x
+            
+            print(f"after {cls.skip_rows}")    
+            
         else:
-            compare_target = tmp_df.to_dict('index')
-        return compare_target
+            output = tmp_df.to_dict('index')
+        return output
