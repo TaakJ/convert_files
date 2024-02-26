@@ -74,7 +74,7 @@ class convert_2_file(validate_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -130,18 +130,18 @@ class convert_2_file(validate_files):
                     
                     if glob.glob(csv_name, recursive=True):
                         tmp_df = pd.read_csv(csv_name)
-                        to_write = self.update_data(tmp_df, new_df)
+                        output = self.update_data(tmp_df, new_df)
                         
                         ## read from file
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
                             rows = {idx: rows for idx, rows in enumerate(csvin)}
-                            for idx in to_write:
+                            for idx in output:
                                 if idx in rows:
-                                    rows[idx].update(to_write[idx])
+                                    rows[idx].update(output[idx])
                                     logging.info(f"update record num: {idx}, data: {rows[idx]}")
                                 else:
-                                    rows.update({idx: to_write[idx]})
+                                    rows.update({idx: output[idx]})
                                     logging.info(f"insert record num: {idx}, data: {rows[idx]}")
                                     
                         ## write to file
@@ -184,25 +184,30 @@ class convert_2_file(validate_files):
                     
                     if status == 'successed':
                         tmp_df = pd.read_csv(filename)
-                        to_write = self.get_data_target(target_name, tmp_df)
-                        print(to_write)
+                        output = self.get_data_target(target_name, tmp_df)
                     else:
                         raise CustomException(self.logging)
                     
                     status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
+                    
+                    # ## wirte to export file daily
+                    # for rdx, (_, data) in enumerate(output.items(), 2):
+                    #     for cdx, (_, value)  in enumerate(data.items(), 1):
+                    #             cell = sheet.cell(row=rdx, column=cdx)
+                    #             cell.value = value
+                    # for x in self.skip_rows:
+                    #     sheet.delete_rows(idx=x, amount=1)
                         
-                    ## wirte to export file daily
-                    # for rdx, (_, data) in enumerate(to_write.items(), 2):
-                    #     for cdx, (_, val)  in enumerate(data.items(), 1):
-                    #         cell = sheet.cell(row=rdx, column=cdx)
-                    #         cell.value = val
                     # workbook.save(target_name)
                     # status = 'successed'
                     
-                    # key.update({'status': status})
-                    # logging.info(f"write to target files status: {status}")
+                    key.update({'status': status})
+                    logging.info(f"write to target files status: {status}")
                     
             except Exception as err:
-                print(f"error => {err}")
+                key.update({'errors': err})
+                
+        if 'errors' in key:
+            raise CustomException(self.logging)
                     

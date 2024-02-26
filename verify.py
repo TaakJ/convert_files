@@ -11,7 +11,6 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from collections import Counter
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -158,49 +157,48 @@ class validate_files(FOLDER):
                 break  
         return key
     
-    
     @classmethod
-    def update_data(cls, old_df, new_df):
+    def update_data(cls, target_df, new_df):
         
-        if len(old_df.index) > len(new_df.index):
-            cls.skip_rows = [idx for idx in list(old_df.index) if idx not in list(new_df.index)]
+        if len(target_df.index) > len(new_df.index):
+            cls.skip_rows = [idx for idx in list(target_df.index) if idx not in list(new_df.index)]
         
-        union_index = np.union1d(old_df.index, new_df.index)
+        union_index = np.union1d(target_df.index, new_df.index)
         ## set old record
-        old_df = old_df.reindex(index=union_index, columns=old_df.columns)
+        target_df = target_df.reindex(index=union_index, columns=target_df.columns)
         
         ## set new record
         new_df = new_df.reindex(index=union_index, columns=new_df.columns)
         
         ## set column change / skip in new_df 
-        new_df['change'] = pd.DataFrame(np.where(new_df.ne(old_df), True, False), index=new_df.index, columns=new_df.columns)\
+        new_df['change'] = pd.DataFrame(np.where(new_df.ne(target_df), True, False), index=new_df.index, columns=new_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
         new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
         
         ## set column change / skip in old_df 
-        old_df['change'] = new_df['change']
-        old_df['skip'] = old_df.apply(lambda x: x.isna()).all(axis=1)
+        target_df['change'] = new_df['change']
+        target_df['skip'] = target_df.apply(lambda x: x.isna()).all(axis=1)
         
         for idx in union_index:
             if idx not in cls.skip_rows:
-                for old, new in zip(old_df.items(), new_df.items()):
-                    if old_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
+                for target, new in zip(target_df.items(), new_df.items()):
+                    if target_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
                         if new_df.loc[idx, 'change'] <= 1:
                             ## not change rows
-                            old_df.at[idx, old[0]] = old[1].iloc[idx]
+                            target_df.at[idx, target[0]] = target[1].iloc[idx]
                         else:
                             ## update rows
-                            old_df.at[idx, old[0]] = new[1].iloc[idx]
+                            target_df.at[idx, target[0]] = new[1].iloc[idx]
                     else:
                         ## insert rows
-                        old_df.at[idx, old[0]] = new[1].iloc[idx]
+                        target_df.at[idx, target[0]] = new[1].iloc[idx]
             else:
                 ## delete rows
                 continue
             
-        old_df = old_df.loc[old_df['change'] > 1].drop(['change', 'skip'], axis=1)
-        to_write = old_df.to_dict('index')
-        return to_write
+        target_df = target_df.loc[target_df['change'] > 1].drop(['change', 'skip'], axis=1)
+        output = target_df.to_dict('index')
+        return output
     
     @classmethod
     def get_data_target(cls, target_name, tmp_df):
@@ -208,23 +206,30 @@ class validate_files(FOLDER):
         target_df = pd.read_excel(target_name)
         
         if not target_df.empty:
-            
-            ## select data row for daily
+            ## select row with daily 
             date = tmp_df['CreateDate'].unique()
             mask = target_df['CreateDate'].isin(date)
             target_df = target_df[mask].reset_index(drop=True)
+            compare_target = target_df.to_dict('index')
             
-            output = cls.update_data(target_df, tmp_df)
-            to_write = target_df.to_dict('index')
+            ## compare data with tmp
+            compare_tmp = cls.update_data(target_df, tmp_df)
             
-            for key, value in output.items():
-                if key not in to_write:
-                    i = max(to_write) + 1
-                    to_write[i] = value
+            rows = 2
+            for key, value in compare_tmp.items():
+                if key not in cls.skip_rows:
+                    try:
+                        if value != compare_target[key]:
+                            compare_target.pop(key)
+                        compare_target[key] = value
+                    except KeyError:
+                        compare_target[key] = value
                 else:
-                    continue
+                    if value == compare_target[key]:
+                        compare_target.pop(key)
+                        
+            ## update value for skip rows 
+            cls.skip_rows = [rows + i for i in cls.skip_rows]
         else:
-            to_write = tmp_df.to_dict('index')
-            
-        return to_write
-            
+            compare_target = tmp_df.to_dict('index')
+        return compare_target
