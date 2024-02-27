@@ -62,7 +62,6 @@ class convert_2_file(validate_files):
             source = Path(file).stem
             log.append({'source': source, 'full_path': file})
         self.logging = log
-        
         return self.logging
     
     def sample(call_method):
@@ -72,10 +71,10 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -88,7 +87,7 @@ class convert_2_file(validate_files):
     @sample
     def get_data_files(self):
         
-        logging.info('Get Data From Files..')
+        logging.info('Get Data from files..')
         status = 'failed'
         
         for key in self.logging:
@@ -173,7 +172,7 @@ class convert_2_file(validate_files):
                 raise CustomException(self.logging)
             
     def write_to_file(self):
-        date = self.date.strftime('%Y-%m-%d')
+        
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         
@@ -198,16 +197,12 @@ class convert_2_file(validate_files):
                     
                     # write data to target file
                     for start_rows, data in enumerate(output.values(), 2):
-                        for cdx, value in enumerate(data.values(), 1):
-                            sheet.cell(row=start_rows, column=cdx).value = value
+                        for column, value in enumerate(data.values(), 1):
+                            sheet.cell(row=start_rows, column=column).value = value
                             
-                    # delete rows
                     start_rows = 2
                     while start_rows <= sheet.max_row:
-                        # if sheet.cell(row=start_rows, column=11).value == date:
-                        #     logging.info(f"Write Rows: {sheet.cell(row=start_rows, column=1).row} to Target files.")
                         if sheet.cell(row=start_rows, column=1).row in self.skip_rows:
-                            # logging.info(f"Deleted Rows: {sheet.cell(row=start_rows, column=1).row} to Target files.")
                             sheet.delete_rows(start_rows, 1)
                         else:
                             start_rows += 1

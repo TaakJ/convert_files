@@ -66,6 +66,7 @@ class validate_files(FOLDER):
     
     @staticmethod
     def clean_lines_excel(full_path):
+        
         workbook = xlrd.open_workbook(full_path)
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
         
@@ -78,6 +79,7 @@ class validate_files(FOLDER):
                 
     @staticmethod
     def clean_lines_text(full_path):
+        
         sheets =  str(Path(full_path).stem).upper()
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
@@ -95,6 +97,7 @@ class validate_files(FOLDER):
     
     @classmethod
     def generate_excel_data(cls, full_path):
+        
         key = {}
         clean_data = iter(cls.clean_lines_excel(full_path))
         
@@ -112,10 +115,11 @@ class validate_files(FOLDER):
                 
     @classmethod
     def generate_text_data(cls, full_path):
+        
         key = {}
+        rows = 0
         line_regex = iter(cls.clean_lines_text(full_path))
         
-        rows = 0
         while True:
             try:
                 clean_data = []
@@ -245,5 +249,4 @@ class validate_files(FOLDER):
                 cls.skip_rows[i] = skip_rows
         else:
             output = tmp_df.to_dict('index')
-            
         return output
