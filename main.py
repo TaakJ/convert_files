@@ -28,7 +28,7 @@ from exception import CustomException
 class start_project(convert_2_file):
     def __init__(self):
         
-        # self.setup_log()
+        self.setup_log()
         # self.backup_folder()
         # self.clear_folder()
         # self.setup_folder()

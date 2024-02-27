@@ -239,9 +239,9 @@ class validate_files(FOLDER):
             else:
                 output = mask_diff
                 
-            rows = 2
+            start_rows = 2
             for i, lines in enumerate(cls.skip_rows):
-                skip_rows = (rows + lines) + get_rows
+                skip_rows = (start_rows + lines) + get_rows
                 cls.skip_rows[i] = skip_rows
         else:
             output = tmp_df.to_dict('index')

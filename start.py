@@ -72,8 +72,8 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -117,7 +117,7 @@ class convert_2_file(validate_files):
     
     def compare_data_to_file(self):
         
-        logging.info('Compare Data To Files..')
+        logging.info('Compare Data to Tmp files..')
         csv_name = f"{self.LOG}DD_{self.date.strftime('%d%m%Y')}.csv"
         status = 'failed'
         
@@ -132,19 +132,23 @@ class convert_2_file(validate_files):
                         output = self.update_data(tmp_df, new_df)
                         
                         ## read from file
+                        start_rows = 2 
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
                             rows = {idx: rows for idx, rows in enumerate(csvin)}
                             if output != {}:
                                 for idx in output:
                                     if idx in rows:
-                                        rows[idx].update(output[idx])
-                                        logging.info(f"Update Record Index: {idx + 1}, Value: {rows[idx]}")
+                                        if idx not in self.skip_rows:
+                                            rows[idx].update(output[idx])
+                                            logging.info(f"Updated Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
+                                        else:
+                                            logging.info(f"Deleted Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
                                     else:
                                         rows.update({idx: output[idx]})
-                                        logging.info(f"Insert Record Index: {idx + 1}, Value: {rows[idx]}")
+                                        logging.info(f"Inserted Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
                             else:
-                                logging.info("There are no changes to the data in the record")
+                                logging.info("No changes to the data in the record")
                                 
                         ## write to file
                         with open(csv_name, 'w', newline='') as writer:
@@ -169,7 +173,7 @@ class convert_2_file(validate_files):
                 raise CustomException(self.logging)
             
     def write_to_file(self):
-        
+        date = self.date.strftime('%Y-%m-%d')
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         
@@ -193,13 +197,20 @@ class convert_2_file(validate_files):
                     key.update({'full_path': target_name, 'status': status})
                     
                     # write data to target file
-                    for rdx, data in enumerate(output.values(), 2):
+                    for start_rows, data in enumerate(output.values(), 2):
                         for cdx, value in enumerate(data.values(), 1):
-                            cell = sheet.cell(row=rdx, column=cdx)
-                            cell.value = value
+                            sheet.cell(row=start_rows, column=cdx).value = value
+                            
                     # delete rows
-                    for lines in self.skip_rows:
-                        sheet.delete_rows(lines, 1)
+                    start_rows = 2
+                    while start_rows <= sheet.max_row:
+                        # if sheet.cell(row=start_rows, column=11).value == date:
+                        #     logging.info(f"Write Rows: {sheet.cell(row=start_rows, column=1).row} to Target files.")
+                        if sheet.cell(row=start_rows, column=1).row in self.skip_rows:
+                            # logging.info(f"Deleted Rows: {sheet.cell(row=start_rows, column=1).row} to Target files.")
+                            sheet.delete_rows(start_rows, 1)
+                        else:
+                            start_rows += 1
                         
                     workbook.save(target_name)
                     status = 'successed'
