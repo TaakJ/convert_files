@@ -156,7 +156,6 @@ class validate_files(FOLDER):
                     else:
                         key[sheets].append(clean_data)
                 rows += 1
-                
             except StopIteration:
                 break  
         return key
