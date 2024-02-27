@@ -31,7 +31,7 @@ class convert_2_file(validate_files):
     def check_success_files(call_method):
         def fn_success_files(self):
             
-            logging.info('check success files')
+            logging.info('Check Success files..')
             success_file = []
             
             for key in call_method(self):
@@ -49,7 +49,7 @@ class convert_2_file(validate_files):
             if success_file.__contains__('missing'):
                 raise CustomException(self.logging)
             else:
-                logging.info(f"file found count {len(success_file)} status: success")
+                logging.info(f"File found count {len(success_file)} status: successed")
                 
             return self.logging
         return fn_success_files
@@ -88,7 +88,7 @@ class convert_2_file(validate_files):
     @sample
     def get_data_files(self):
         
-        logging.info('get data from files')
+        logging.info('Get Data From Files..')
         status = 'failed'
         
         for key in self.logging:
@@ -98,10 +98,10 @@ class convert_2_file(validate_files):
             
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
-                    logging.info(f"read excel files: '{full_path}'")
+                    logging.info(f"Read Excel files: '{full_path}'")
                     list_data = self.generate_excel_data(full_path)
                 else:
-                    logging.info(f"read text files: '{full_path}'")
+                    logging.info(f"Read Text files: '{full_path}'")
                     list_data = self.generate_text_data(full_path)
                     
                 status = 'successed'
@@ -117,7 +117,7 @@ class convert_2_file(validate_files):
     
     def compare_data_to_file(self):
         
-        logging.info('compare data to files')
+        logging.info('Compare Data To Files..')
         csv_name = f"{self.LOG}DD_{self.date.strftime('%d%m%Y')}.csv"
         status = 'failed'
         
@@ -135,14 +135,17 @@ class convert_2_file(validate_files):
                         with open(csv_name, 'r') as reader:
                             csvin = csv.DictReader(reader, skipinitialspace=True)
                             rows = {idx: rows for idx, rows in enumerate(csvin)}
-                            for idx in output:
-                                if idx in rows:
-                                    rows[idx].update(output[idx])
-                                    logging.info(f"update record num: {idx}, data: {rows[idx]}")
-                                else:
-                                    rows.update({idx: output[idx]})
-                                    logging.info(f"insert record num: {idx}, data: {rows[idx]}")
-                                    
+                            if output != {}:
+                                for idx in output:
+                                    if idx in rows:
+                                        rows[idx].update(output[idx])
+                                        logging.info(f"Update Record Index: {idx + 1}, Value: {rows[idx]}")
+                                    else:
+                                        rows.update({idx: output[idx]})
+                                        logging.info(f"Insert Record Index: {idx + 1}, Value: {rows[idx]}")
+                            else:
+                                logging.info("There are no changes to the data in the record")
+                                
                         ## write to file
                         with open(csv_name, 'w', newline='') as writer:
                             csvout = csv.DictWriter(writer, csvin.fieldnames)
@@ -157,7 +160,7 @@ class convert_2_file(validate_files):
                         status = 'successed'     
                         
                     key.update({'status': status})
-                    logging.info(f"write to tmp file status: {status}")
+                    logging.info(f"Write to Tmp files status: {status}")
                     
             except Exception as err:
                 key.update({'errors': err})
@@ -167,7 +170,7 @@ class convert_2_file(validate_files):
             
     def write_to_file(self):
         
-        logging.info("write data to target files")
+        logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         
         workbook = openpyxl.load_workbook(target_name)
@@ -177,6 +180,7 @@ class convert_2_file(validate_files):
         
         for key in self.logging:
             try:
+                status = 'failed'
                 if key['source'] == 'Target_file':
                     filename = key['full_path']
                     status = key['status']
@@ -186,27 +190,23 @@ class convert_2_file(validate_files):
                         output = self.get_data_target(target_name, tmp_df)
                     else:
                         raise CustomException(self.logging)
-                    
-                    status = 'failed'
                     key.update({'full_path': target_name, 'status': status})
                     
-                    print()
-                    for k, v in output.items():
-                        print(k + 2)
-                    
-                    # # wirte to export file daily
-                    # for rdx, (_, data) in enumerate(output.items(), 2):
-                    #     for cdx, (_, value)  in enumerate(data.items(), 1):
-                    #             cell = sheet.cell(row=rdx, column=cdx)
-                    #             cell.value = value
-                    # for x in self.skip_rows:
-                    #     sheet.delete_rows(idx=x, amount=1)
+                    # write data to target file
+                    for rdx, data in enumerate(output.values(), 2):
+                        for cdx, value in enumerate(data.values(), 1):
+                            cell = sheet.cell(row=rdx, column=cdx)
+                            cell.value = value
+                            
+                    for lines in self.skip_rows:
+                        print(lines)
+                        # sheet.delete_rows(idx=lines, amount=1)
                         
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                    workbook.save(target_name)
+                    status = 'successed'
                     
-                    # key.update({'status': status})
-                    # logging.info(f"write to target files status: {status}")
+                    key.update({'status': status})
+                    logging.info(f"write to target files status: {status}")
                     
             except Exception as err:
                 key.update({'errors': err})

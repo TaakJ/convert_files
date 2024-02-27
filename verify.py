@@ -206,16 +206,18 @@ class validate_files(FOLDER):
         target_df = pd.read_excel(target_name)
         
         if not target_df.empty:
-            ## select row with daily for compare
             date = tmp_df['CreateDate'].unique()
+            
+            ## select row not use for compare
             output = target_df[~target_df['CreateDate'].isin(date)]
+            get_rows = len(output.index)
+            
+            ## select row use for compare / mark data for compare with tmp
             mask_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-            
-            ## mark data for compare with tmp
-            compare_tmp = cls.update_data(mask_df, tmp_df)
             mask_diff = mask_df.to_dict('index')
+            compare_data = cls.update_data(mask_df, tmp_df)
             
-            for key, value in compare_tmp.items():
+            for key, value in compare_data.items():
                 if key not in cls.skip_rows:
                     try:
                         if value != mask_diff[key]:
@@ -228,21 +230,20 @@ class validate_files(FOLDER):
                         mask_diff.pop(key)
             
             ## update data for wirte to target
-            print(f"before {cls.skip_rows}")
             output = output.to_dict('index')
             if output != {}:
-                max_rows = max(output)
+                max_rows = get_rows - 1
                 for key, value in mask_diff.items():
                     max_rows += 1
                     output[max_rows] = value
             else:
                 output = mask_diff
-            
-            for i, x in enumerate(cls.skip_rows):
-                cls.skip_rows[i] = max(output) + x
-            
-            print(f"after {cls.skip_rows}")    
-            
+                
+            rows = 2
+            for i, lines in enumerate(cls.skip_rows):
+                skip_rows = (rows + lines) + get_rows
+                cls.skip_rows[i] = skip_rows
         else:
             output = tmp_df.to_dict('index')
+            
         return output
