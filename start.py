@@ -5,6 +5,7 @@ import logging
 import openpyxl
 import pandas as pd
 from pathlib import Path
+from deepdiff import DeepDiff
 from verify import validate_files
 from exception import CustomException
 
@@ -18,7 +19,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.compare_data_to_file()
-        self.write_to_file()
+        # self.write_to_file()
         
     @property
     def logging(self):
@@ -41,6 +42,7 @@ class convert_2_file(validate_files):
                 if glob.glob(full_path, recursive=True):
                     status = 'successed'
                     success_file.append(status)
+                    
                 else:
                     status = 'missing'
                     success_file.append(status)
@@ -62,6 +64,7 @@ class convert_2_file(validate_files):
             source = Path(file).stem
             log.append({'source': source, 'full_path': file})
         self.logging = log
+        
         return self.logging
     
     def sample(call_method):
@@ -70,11 +73,11 @@ class convert_2_file(validate_files):
         def fn_mock_data(self):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        [100,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -99,6 +102,7 @@ class convert_2_file(validate_files):
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel files: '{full_path}'")
                     list_data = self.generate_excel_data(full_path)
+                    
                 else:
                     logging.info(f"Read Text files: '{full_path}'")
                     list_data = self.generate_text_data(full_path)
@@ -138,16 +142,23 @@ class convert_2_file(validate_files):
                             if output != {}:
                                 for idx in output:
                                     if idx in rows:
+                                        
                                         if idx not in self.skip_rows:
-                                            rows[idx].update(output[idx])
-                                            logging.info(f"Updated Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
+                                            change_value = {}
+                                            for value in rows[idx]: 
+                                                if value in output[idx] and str(rows[idx][value]) != str(output[idx][value]):
+                                                    change_value.update({value: f"{rows[idx][value]} => {output[idx][value]}"})
+                                                    rows[idx].update({value: output[idx][value]})
+                                            logging.info(f"\033[1mUpdated Rows: {idx + start_rows} to Tmp files. Record: {change_value}\033[0m")
+                                            
                                         else:
-                                            logging.info(f"Deleted Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
+                                            logging.info(f"\033[1mDeleted Rows: {idx + start_rows} to Tmp files. Record: {rows[idx]}\033[0m")
+                                            
                                     else:
                                         rows.update({idx: output[idx]})
-                                        logging.info(f"Inserted Rows: {idx + start_rows} to Tmp files.\n Value: {rows[idx]}")
+                                        logging.info(f"\033[1mInserted Rows: {idx + start_rows} to Tmp files. Record: {rows[idx]}\033[0m")
                             else:
-                                logging.info("No changes to the data in the record")
+                                logging.info("\033[1mNo changes to the data in the record.\033[0m")
                                 
                         ## write to file
                         with open(csv_name, 'w', newline='') as writer:
@@ -160,7 +171,8 @@ class convert_2_file(validate_files):
                         status = 'successed'
                     else:
                         new_df.to_csv(csv_name, index=False, header=True)    
-                        status = 'successed'     
+                        status = 'successed'
+                        logging.info(f"\033[1mCreate Tmp files '{csv_name}'\033[0m")
                         
                     key.update({'status': status})
                     logging.info(f"Write to Tmp files status: {status}")

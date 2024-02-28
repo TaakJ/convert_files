@@ -14,7 +14,7 @@ xlrd = "==1.2.0"
 celery = "*"
 redis = "*"
 jinja2 = "*"
-
+deepdiff = "*"
 
 [dev-packages]
 
