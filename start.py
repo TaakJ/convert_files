@@ -19,7 +19,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.compare_data_to_file()
-        # self.write_to_file()
+        self.write_to_file()
         
     @property
     def logging(self):
@@ -74,7 +74,7 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
@@ -146,19 +146,19 @@ class convert_2_file(validate_files):
                                         if idx not in self.skip_rows:
                                             change_value = {}
                                             for value in rows[idx]: 
-                                                if value in output[idx] and str(rows[idx][value]) != str(output[idx][value]):
+                                                if value in output[idx] and (str(rows[idx][value]) != str(output[idx][value])):
                                                     change_value.update({value: f"{rows[idx][value]} => {output[idx][value]}"})
                                                     rows[idx].update({value: output[idx][value]})
-                                            logging.info(f"\033[1mUpdated Rows: {idx + start_rows} to Tmp files. Record: {change_value}\033[0m")
+                                            logging.info(f"\033[1mUpdated Rows: {idx + start_rows} in Tmp files. Record: {change_value}\033[0m")
                                             
                                         else:
-                                            logging.info(f"\033[1mDeleted Rows: {idx + start_rows} to Tmp files.\033[0m")
-                                            
+                                            logging.info(f"\033[1mDeleted Rows: {idx + start_rows} in Tmp files.\033[0m")
+                                            continue
                                     else:
                                         rows.update({idx: output[idx]})
-                                        logging.info(f"\033[1mInserted Rows: {idx + start_rows} to Tmp files. Record: {rows[idx]}\033[0m")
+                                        logging.info(f"\033[1mInserted Rows: {idx + start_rows} in Tmp files. Record: {rows[idx]}\033[0m")
                             else:
-                                logging.info("\033[1mNo changes to the data in the record.\033[0m")
+                                logging.info("\033[1mNo changes in Tmp files.\033[0m")
                                 
                         ## write to file
                         with open(csv_name, 'w', newline='') as writer:
@@ -172,7 +172,7 @@ class convert_2_file(validate_files):
                     else:
                         new_df.to_csv(csv_name, index=False, header=True)    
                         status = 'successed'
-                        logging.info(f"\033[1mCreate Tmp files '{csv_name}'\033[0m")
+                        logging.info(f"\033[1mCreate Tmp files '{csv_name}.'\033[0m")
                         
                     key.update({'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
@@ -207,18 +207,24 @@ class convert_2_file(validate_files):
                         raise CustomException(self.logging)
                     key.update({'full_path': target_name, 'status': status})
                     
-                    # write data to target file
-                    for start_rows, data in enumerate(output.values(), 2):
-                        for column, value in enumerate(data.values(), 1):
-                            sheet.cell(row=start_rows, column=column).value = value
-                            
+                    ## write data to target file
+                    header_rows = 1
                     start_rows = 2
-                    while start_rows <= sheet.max_row:
+                    max_rows = header_rows + max(output)
+                    print(max_rows)
+                    while start_rows <= max_rows:
                         if sheet.cell(row=start_rows, column=1).row in self.skip_rows:
                             sheet.delete_rows(start_rows, 1)
+                            logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
+                            
                         else:
-                            start_rows += 1
-                        
+                            if start_rows in self.insert_rows:
+                                for idx, value in enumerate(output[start_rows].values(), 1):
+                                    sheet.cell(row=start_rows, column=idx).value = value
+                                logging.info(f"\033[1mWrite Rows: {start_rows} in Target files. Record: {output[start_rows]}\033[0m")
+                                
+                        start_rows += 1
+                            
                     workbook.save(target_name)
                     status = 'successed'
                     

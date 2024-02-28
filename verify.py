@@ -63,6 +63,7 @@ class FOLDER:
                     
 class validate_files(FOLDER):
     skip_rows = []
+    insert_rows = []
     
     @staticmethod
     def clean_lines_excel(full_path):
@@ -207,13 +208,15 @@ class validate_files(FOLDER):
     def get_data_target(cls, target_name, tmp_df):
         
         target_df = pd.read_excel(target_name)
+        start_rows = 2
         
         if not target_df.empty:
             date = tmp_df['CreateDate'].unique()
             
             ## select row not use for compare
-            output = target_df[~target_df['CreateDate'].isin(date)]
-            get_rows = len(output.index)
+            header_rows = 1
+            output = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
+            max_rows = max(output)
             
             ## select row use for compare / mark data for compare with tmp
             mask_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
@@ -232,20 +235,19 @@ class validate_files(FOLDER):
                     if value == mask_diff[key]:
                         mask_diff.pop(key)
             
-            ## update data for wirte to target
-            output = output.to_dict('index')
-            if output != {}:
-                max_rows = get_rows - 1
-                for key, value in mask_diff.items():
-                    max_rows += 1
-                    output[max_rows] = value
-            else:
-                output = mask_diff
-                
-            start_rows = 2
+            ## check delete rows
             for i, lines in enumerate(cls.skip_rows):
-                skip_rows = (start_rows + lines) + get_rows
+                skip_rows = header_rows + max_rows + start_rows + lines
                 cls.skip_rows[i] = skip_rows
+            
+            ## check update rows
+            for key, value in mask_diff.items():
+                max_rows += 1
+                output[max_rows] = value
+                cls.insert_rows.append(start_rows + max_rows)
+                
         else:
             output = tmp_df.to_dict('index')
+            
+        output = {start_rows + key: value for key,value in output.items()}
         return output
