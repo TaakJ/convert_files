@@ -51,7 +51,7 @@ class convert_2_file(validate_files):
             if success_file.__contains__('missing'):
                 raise CustomException(self.logging)
             else:
-                logging.info(f"File found count {len(success_file)} status: successed")
+                logging.info(f"\033[1mFile found count {len(success_file)} status: successed.\033[0m")
                 
             return self.logging
         return fn_success_files
@@ -73,8 +73,8 @@ class convert_2_file(validate_files):
         def fn_mock_data(self):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [100,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
@@ -100,11 +100,11 @@ class convert_2_file(validate_files):
             
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
-                    logging.info(f"Read Excel files: '{full_path}'")
+                    logging.info(f"Read Excel files: '{full_path}'.")
                     list_data = self.generate_excel_data(full_path)
                     
                 else:
-                    logging.info(f"Read Text files: '{full_path}'")
+                    logging.info(f"Read Text files: '{full_path}'.")
                     list_data = self.generate_text_data(full_path)
                     
                 status = 'successed'
@@ -152,7 +152,7 @@ class convert_2_file(validate_files):
                                             logging.info(f"\033[1mUpdated Rows: {idx + start_rows} to Tmp files. Record: {change_value}\033[0m")
                                             
                                         else:
-                                            logging.info(f"\033[1mDeleted Rows: {idx + start_rows} to Tmp files. Record: {rows[idx]}\033[0m")
+                                            logging.info(f"\033[1mDeleted Rows: {idx + start_rows} to Tmp files.\033[0m")
                                             
                                     else:
                                         rows.update({idx: output[idx]})
@@ -175,7 +175,7 @@ class convert_2_file(validate_files):
                         logging.info(f"\033[1mCreate Tmp files '{csv_name}'\033[0m")
                         
                     key.update({'status': status})
-                    logging.info(f"Write to Tmp files status: {status}")
+                    logging.info(f"Write to Tmp files status: {status}.")
                     
             except Exception as err:
                 key.update({'errors': err})
@@ -223,7 +223,7 @@ class convert_2_file(validate_files):
                     status = 'successed'
                     
                     key.update({'status': status})
-                    logging.info(f"write to target files status: {status}")
+                    logging.info(f"write to target files status: {status}.")
                     
             except Exception as err:
                 key.update({'errors': err})
