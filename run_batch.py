@@ -7,6 +7,7 @@ import pandas as pd
 from pathlib import Path
 from verify import validate_files
 from exception import CustomException
+from datetime import datetime
 
 class convert_2_file(validate_files):
     def __init__(self, **kwargs):
@@ -14,12 +15,11 @@ class convert_2_file(validate_files):
         
         for key, value in kwargs.items():
             setattr(self, key, value)
-        
-        print(self.date)
-        # self.get_list_files()
-        # self.get_data_files()
-        # self.compare_data_to_file()
-        # self.write_to_file()
+            
+        self.get_list_files()
+        self.get_data_files()
+        self.compare_data_to_file()
+        self.write_to_file()
         
     @property
     def logging(self):
@@ -27,7 +27,8 @@ class convert_2_file(validate_files):
     
     @logging.setter
     def logging(self, log):
-        self.__log = [{key['source']: key for key in log}.values()]
+        # self.__log = list({key['source']: key for key in log}.values())
+        self.__log = log
     
     def check_success_files(call_method):
         def fn_success_files(self):
@@ -54,6 +55,7 @@ class convert_2_file(validate_files):
                 logging.info(f"\033[1mFile found count {len(success_file)} status: successed.\033[0m")
                 
             return self.logging
+        
         return fn_success_files
     
     @check_success_files
@@ -71,13 +73,14 @@ class convert_2_file(validate_files):
         
         logging.info("Mock Data")
         def fn_mock_data(self):
+            now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12,self.date.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26,self.date.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40,self.date.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,self.date.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,self.date.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        [10,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [150,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [290,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -142,8 +145,8 @@ class convert_2_file(validate_files):
                             if output != {}:
                                 for idx in output:
                                     if idx in rows:
-                                        
                                         if idx not in self.skip_rows:
+                                            
                                             change_value = {}
                                             for value in rows[idx]: 
                                                 if value in output[idx] and (str(rows[idx][value]) != str(output[idx][value])):
@@ -158,7 +161,7 @@ class convert_2_file(validate_files):
                                         rows.update({idx: output[idx]})
                                         logging.info(f"\033[1mInserted Rows: {idx + start_rows} in Tmp files. Recorded: {rows[idx]}\033[0m")
                             else:
-                                logging.info("\033[1mNo changes in Tmp files.\033[0m")
+                                logging.info("\033[1mNo changes data in Tmp files.\033[0m")
                                 
                         ## write to file
                         with open(csv_name, 'w', newline='') as writer:
@@ -169,6 +172,7 @@ class convert_2_file(validate_files):
                                     csvout.writerow(rows[idx])
                         writer.closed
                         status = 'successed'
+                        
                     else:
                         new_df.to_csv(csv_name, index=False, header=True)    
                         status = 'successed'
@@ -208,22 +212,22 @@ class convert_2_file(validate_files):
                     key.update({'full_path': target_name, 'status': status})
                     
                     ## write data to target file
-                    start_rows = 2
-                    cnt_rows = max(output) + len(self.skip_rows)
-                    while start_rows <= cnt_rows:
-                        if start_rows in self.skip_rows:
-                            sheet.delete_rows(start_rows, len(self.skip_rows))
-                            logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
+                    # start_rows = 2
+                    # cnt_rows = max(output) + len(self.skip_rows)
+                    # while start_rows <= cnt_rows:
+                    #     if start_rows in self.skip_rows:
+                    #         sheet.delete_rows(start_rows, len(self.skip_rows))
+                    #         logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
+                    #     else:
+                    #         if start_rows in self.insert_rows:
+                    #             for idx, value in enumerate(output[start_rows].values(), 1):
+                    #                 sheet.cell(row=start_rows, column=idx).value = value
+                    #             logging.info(f"\033[1mInserted Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
                             
-                        else:
-                            if start_rows in self.insert_rows:
-                                for idx, value in enumerate(output[start_rows].values(), 1):
-                                    sheet.cell(row=start_rows, column=idx).value = value
-                                logging.info(f"\033[1mInserted Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
-                            
-                        start_rows += 1
-                    workbook.save(target_name)
-                    status = 'successed'
+                    #     start_rows += 1
+                        
+                    # workbook.save(target_name)
+                    # status = 'successed'
                     
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
@@ -233,4 +237,3 @@ class convert_2_file(validate_files):
                 
         if 'errors' in key:
             raise CustomException(self.logging)
-                    

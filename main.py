@@ -1,7 +1,7 @@
 import argparse
 import logging
-from datetime import datetime
-from start import convert_2_file
+from datetime import datetime, timedelta
+from run_batch import convert_2_file
 from exception import CustomException
 
 class start_project(convert_2_file):
@@ -13,9 +13,12 @@ class start_project(convert_2_file):
         # self.setup_folder()
         
         try:
-            date = datetime.datetime(2024, 2, 27)
+            fix_date = datetime(2024, 2, 27)
+            now = datetime.today()
+            days = (now- fix_date).days
+            date = now - timedelta(days=days)
+            
             logging.info("Start Project")
-            date = datetime.now()
             super().__init__(date=date)
             
         except CustomException as err:  

@@ -11,6 +11,7 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import operator
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -77,7 +78,7 @@ class validate_files(FOLDER):
             for row in range(0, cells.nrows):
                 key = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
                 yield key
-                
+    
     @staticmethod
     def clean_lines_text(full_path):
         
@@ -113,7 +114,7 @@ class validate_files(FOLDER):
             except StopIteration:
                 break
         return key
-                
+    
     @classmethod
     def generate_text_data(cls, full_path):
         
@@ -202,6 +203,7 @@ class validate_files(FOLDER):
             
         target_df = target_df.loc[target_df['change'] > 1].drop(['change', 'skip'], axis=1)
         output = target_df.to_dict('index')
+        
         return output
     
     @classmethod
@@ -215,39 +217,52 @@ class validate_files(FOLDER):
             
             ## select row not use for compare
             header_rows = 1
-            output = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
-            max_rows = max(output)
+            keep_date = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
+            max_rows = max(keep_date)
             
             ## select row use for compare / mark data for compare with tmp
-            mask_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-            mask_diff = mask_df.to_dict('index')
-            compare_data = cls.update_data(mask_df, tmp_df)
+            mask_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
+            compare_data = cls.update_data(mask_date, tmp_df)
             
+            mask_date = mask_date.to_dict('index')
             for key, value in compare_data.items():
                 if key not in cls.skip_rows:
                     try:
-                        if value != mask_diff[key]:
-                            mask_diff.pop(key)
-                        mask_diff[key] = value
+                        if value != mask_date[key]:
+                            mask_date.pop(key)
+                        mask_date[key] = value
                     except KeyError:
-                        mask_diff[key] = value
+                        mask_date[key] = value
                 else:
-                    if value == mask_diff[key]:
-                        mask_diff.pop(key)
-            
-            ## check delete rows
-            for i, lines in enumerate(cls.skip_rows):
-                skip_rows = header_rows + max_rows + start_rows + lines
-                cls.skip_rows[i] = skip_rows
-            
-            ## check update rows
-            for key, value in mask_diff.items():
+                    if value == mask_date[key]:
+                        mask_date.pop(key)
+                        
+            for value in mask_date.values():
                 max_rows += 1
-                output[max_rows] = value
-                cls.insert_rows.append(start_rows + max_rows)
+                keep_date[max_rows] = value
+                cls.insert_rows.append(max_rows)
                 
+            ## ordered date 
+            output = {}
+            ordered = []
+            for key in keep_date:
+                
+                print(key)
+                print(keep_date[key])
+                
+                ordered.append(keep_date[key])
+                sorted_date = sorted(ordered, key=operator.itemgetter('CreateDate'))
+            output.update({start_rows + i: value for i, value in enumerate(sorted_date)})
+            
+            print(cls.insert_rows)
+            
+            # ## check delete rows
+            # for i, lines in enumerate(cls.skip_rows):
+            #     skip_rows = header_rows + max_rows + start_rows + lines
+            #     cls.skip_rows[i] = skip_rows
+            
         else:
             output = tmp_df.to_dict('index')
-            
-        output = {start_rows + key: value for key,value in output.items()}
+            output = {start_rows + key: value for key,value in output.items()}
+        
         return output
