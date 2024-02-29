@@ -5,21 +5,21 @@ import logging
 import openpyxl
 import pandas as pd
 from pathlib import Path
-from deepdiff import DeepDiff
 from verify import validate_files
 from exception import CustomException
 
 class convert_2_file(validate_files):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__()
         
         for key, value in kwargs.items():
             setattr(self, key, value)
-            
-        self.get_list_files()
-        self.get_data_files()
-        self.compare_data_to_file()
-        self.write_to_file()
+        
+        print(self.date)
+        # self.get_list_files()
+        # self.get_data_files()
+        # self.compare_data_to_file()
+        # self.write_to_file()
         
     @property
     def logging(self):
@@ -27,7 +27,7 @@ class convert_2_file(validate_files):
     
     @logging.setter
     def logging(self, log):
-        self.__log = list({key['source']: key for key in log}.values())
+        self.__log = [{key['source']: key for key in log}.values()]
     
     def check_success_files(call_method):
         def fn_success_files(self):
@@ -149,14 +149,14 @@ class convert_2_file(validate_files):
                                                 if value in output[idx] and (str(rows[idx][value]) != str(output[idx][value])):
                                                     change_value.update({value: f"{rows[idx][value]} => {output[idx][value]}"})
                                                     rows[idx].update({value: output[idx][value]})
-                                            logging.info(f"\033[1mUpdated Rows: {idx + start_rows} in Tmp files. Record: {change_value}\033[0m")
+                                            logging.info(f"\033[1mUpdated Rows: {idx + start_rows} in Tmp files. Recorded: {change_value}\033[0m")
                                             
                                         else:
                                             logging.info(f"\033[1mDeleted Rows: {idx + start_rows} in Tmp files.\033[0m")
                                             continue
                                     else:
                                         rows.update({idx: output[idx]})
-                                        logging.info(f"\033[1mInserted Rows: {idx + start_rows} in Tmp files. Record: {rows[idx]}\033[0m")
+                                        logging.info(f"\033[1mInserted Rows: {idx + start_rows} in Tmp files. Recorded: {rows[idx]}\033[0m")
                             else:
                                 logging.info("\033[1mNo changes in Tmp files.\033[0m")
                                 
@@ -208,23 +208,20 @@ class convert_2_file(validate_files):
                     key.update({'full_path': target_name, 'status': status})
                     
                     ## write data to target file
-                    header_rows = 1
                     start_rows = 2
-                    max_rows = header_rows + max(output)
-                    print(max_rows)
-                    while start_rows <= max_rows:
-                        if sheet.cell(row=start_rows, column=1).row in self.skip_rows:
-                            sheet.delete_rows(start_rows, 1)
+                    cnt_rows = max(output) + len(self.skip_rows)
+                    while start_rows <= cnt_rows:
+                        if start_rows in self.skip_rows:
+                            sheet.delete_rows(start_rows, len(self.skip_rows))
                             logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
                             
                         else:
                             if start_rows in self.insert_rows:
                                 for idx, value in enumerate(output[start_rows].values(), 1):
                                     sheet.cell(row=start_rows, column=idx).value = value
-                                logging.info(f"\033[1mWrite Rows: {start_rows} in Target files. Record: {output[start_rows]}\033[0m")
-                                
-                        start_rows += 1
+                                logging.info(f"\033[1mInserted Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
                             
+                        start_rows += 1
                     workbook.save(target_name)
                     status = 'successed'
                     

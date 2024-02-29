@@ -400,3 +400,25 @@ def compare_data_to_file(self):
     #         return self.fn_log
         
     #     return fn_data_mapping
+
+
+    # def setup_project():
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("-s","-RAW",
+#                         required=False, 
+#                         type=str
+#                         )
+#     parser.add_argument("-x","--EXPORT",
+#                         required=False, 
+#                         type=str
+#                         )
+#     parser.add_argument("-o","--output",
+#                         required=False, 
+#                         choices=[1,2],
+#                         type=int,
+#                         default=1,
+#                         help = (' 0 = Excel file , '
+#                                 ' 1 = CSV file',
+#                                 ' 2 = text file ')
+#                         )
+#     method_args = parser.parse_args()
