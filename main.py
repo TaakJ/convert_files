@@ -7,13 +7,13 @@ from exception import CustomException
 class start_project(convert_2_file):
     def __init__(self):
         
-        # self.setup_log()
+        self.setup_log()
         # self.backup_folder()
         # self.clear_folder()
         # self.setup_folder()
         
         try:
-            fix_date = datetime(2024, 2, 27)
+            fix_date = datetime(2024, 2, 29)
             now = datetime.today()
             days = (now- fix_date).days
             date = now - timedelta(days=days)

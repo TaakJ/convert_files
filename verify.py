@@ -211,13 +211,14 @@ class validate_files(FOLDER):
         
         target_df = pd.read_excel(target_name)
         start_rows = 2
+        output = {}
         
         if not target_df.empty:
             date = tmp_df['CreateDate'].unique()
             
             ## select row not use for compare
             keep_date = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
-            max_rows = max(keep_date)
+            max_rows = max(keep_date, default=0)
             
             ## select row use for compare / mark data for compare with tmp
             mask_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
@@ -226,7 +227,6 @@ class validate_files(FOLDER):
             
             ## compare target change / not change
             for key, value in compare_data.items():
-                i = 0
                 if key not in cls.skip_rows:
                     try:
                         if value != mask_date[key]:
@@ -237,25 +237,18 @@ class validate_files(FOLDER):
                 else:
                     if value == mask_date[key]:
                         mask_date.pop(key)
-                    cls.skip_rows[i] = max_rows + key
-                    i += 1
-                    
+                        
             for value in mask_date.values():
                 max_rows += 1
                 keep_date[max_rows] = value
                 keep_date[max_rows]['inserted'] =  True
             
-            ## ordered date 
-            ordered = []
-            for value in keep_date:
-                ordered.append(keep_date[value])
-                ordered_date = sorted(ordered, key=operator.itemgetter('CreateDate'))
-            
-            output = {}
-            sorted_date = iter(ordered_date)
+            ## set ordered rows 
+            ordered = sorted([keep_date[value] for value in keep_date], key=operator.itemgetter('CreateDate'))
+            sorted_rows = iter(ordered)
             while True:
                 try:
-                    value = next(sorted_date)
+                    value = next(sorted_rows)
                     output.update({start_rows: value})
                     
                     if value.get('inserted'):
@@ -267,7 +260,7 @@ class validate_files(FOLDER):
                 start_rows += 1
                 
         else:
-            output = tmp_df.to_dict('index')
-            output = {start_rows + key: value for key,value in output.items()}
+            tmp_df = tmp_df.to_dict('index')
+            output = {start_rows + key: value for key,value in tmp_df.items()}
         
         return output
