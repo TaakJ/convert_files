@@ -216,16 +216,17 @@ class validate_files(FOLDER):
             date = tmp_df['CreateDate'].unique()
             
             ## select row not use for compare
-            header_rows = 1
             keep_date = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
             max_rows = max(keep_date)
             
             ## select row use for compare / mark data for compare with tmp
             mask_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
             compare_data = cls.update_data(mask_date, tmp_df)
-            
             mask_date = mask_date.to_dict('index')
+            
+            ## compare target change / not change
             for key, value in compare_data.items():
+                i = 0
                 if key not in cls.skip_rows:
                     try:
                         if value != mask_date[key]:
@@ -236,31 +237,35 @@ class validate_files(FOLDER):
                 else:
                     if value == mask_date[key]:
                         mask_date.pop(key)
-                        
+                    cls.skip_rows[i] = max_rows + key
+                    i += 1
+                    
             for value in mask_date.values():
                 max_rows += 1
                 keep_date[max_rows] = value
-                cls.insert_rows.append(max_rows)
-                
+                keep_date[max_rows]['inserted'] =  True
+            
             ## ordered date 
-            output = {}
             ordered = []
-            for key in keep_date:
+            for value in keep_date:
+                ordered.append(keep_date[value])
+                ordered_date = sorted(ordered, key=operator.itemgetter('CreateDate'))
+            
+            output = {}
+            sorted_date = iter(ordered_date)
+            while True:
+                try:
+                    value = next(sorted_date)
+                    output.update({start_rows: value})
+                    
+                    if value.get('inserted'):
+                        cls.insert_rows.append(start_rows)
+                        value.pop('inserted')
+                        
+                except StopIteration:
+                    break
+                start_rows += 1
                 
-                print(key)
-                print(keep_date[key])
-                
-                ordered.append(keep_date[key])
-                sorted_date = sorted(ordered, key=operator.itemgetter('CreateDate'))
-            output.update({start_rows + i: value for i, value in enumerate(sorted_date)})
-            
-            print(cls.insert_rows)
-            
-            # ## check delete rows
-            # for i, lines in enumerate(cls.skip_rows):
-            #     skip_rows = header_rows + max_rows + start_rows + lines
-            #     cls.skip_rows[i] = skip_rows
-            
         else:
             output = tmp_df.to_dict('index')
             output = {start_rows + key: value for key,value in output.items()}

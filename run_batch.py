@@ -76,11 +76,11 @@ class convert_2_file(validate_files):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [10,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [150,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [290,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -212,22 +212,26 @@ class convert_2_file(validate_files):
                     key.update({'full_path': target_name, 'status': status})
                     
                     ## write data to target file
-                    # start_rows = 2
-                    # cnt_rows = max(output) + len(self.skip_rows)
-                    # while start_rows <= cnt_rows:
-                    #     if start_rows in self.skip_rows:
-                    #         sheet.delete_rows(start_rows, len(self.skip_rows))
-                    #         logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
-                    #     else:
-                    #         if start_rows in self.insert_rows:
-                    #             for idx, value in enumerate(output[start_rows].values(), 1):
-                    #                 sheet.cell(row=start_rows, column=idx).value = value
-                    #             logging.info(f"\033[1mInserted Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
+                    start_rows = 2
+                    cnt_rows = max(output) + len(self.skip_rows)
+                    while start_rows <= cnt_rows:
+                        if start_rows in self.skip_rows:
+                            sheet.delete_rows(start_rows, len(self.skip_rows))
+                            logging.info(f"\033[1mDeleted Rows: {start_rows} in Target files.\033[0m")
                             
-                    #     start_rows += 1
+                        else:
+                            if start_rows in self.insert_rows:
+                                for idx, value in enumerate(output[start_rows].values(), 1):
+                                    sheet.cell(row=start_rows, column=idx).value = value
+                                logging.info(f"\033[1mInserted Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
+                                
+                            else:
+                                for idx, value in enumerate(output[start_rows].values(), 1):
+                                    sheet.cell(row=start_rows, column=idx).value = value
+                        start_rows += 1
                         
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                    workbook.save(target_name)
+                    status = 'successed'
                     
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
