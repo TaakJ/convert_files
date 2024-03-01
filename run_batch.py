@@ -5,7 +5,7 @@ import logging
 import openpyxl
 import pandas as pd
 from pathlib import Path
-from verify import validate_files
+from verify_data import validate_files
 from exception import CustomException
 from datetime import datetime
 
@@ -76,9 +76,9 @@ class convert_2_file(validate_files):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        # [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
@@ -135,7 +135,7 @@ class convert_2_file(validate_files):
                     
                     if glob.glob(csv_name, recursive=True):
                         tmp_df = pd.read_csv(csv_name)
-                        output = self.update_data(tmp_df, new_df)
+                        output = self.check_up_data(tmp_df, new_df)
                         
                         ## read from file
                         start_rows = 2 
@@ -211,7 +211,7 @@ class convert_2_file(validate_files):
                         raise CustomException(self.logging)
                     key.update({'full_path': target_name, 'status': status})
                     
-                    # write data to target file
+                    ## write data to target file
                     start_rows = 2
                     while start_rows <= max(output):
                         if start_rows in self.insert_rows:
@@ -223,7 +223,8 @@ class convert_2_file(validate_files):
                             for idx, value in enumerate(output[start_rows].values(), 1):
                                 sheet.cell(row=start_rows, column=idx).value = value   
                         start_rows += 1
-                        
+                    
+                    ## check deleted rows
                     if len(self.skip_rows) != 0:
                         rows = max(output) + 1
                         logging.info(f"\033[1mDeleted Rows: {rows} to {sheet.max_row} tp  in Target files.\033[0m")

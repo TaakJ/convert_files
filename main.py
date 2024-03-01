@@ -13,10 +13,10 @@ class start_project(convert_2_file):
         # self.setup_folder()
         
         try:
-            fix_date = datetime(2024, 2, 29)
-            now = datetime.today()
-            days = (now- fix_date).days
-            date = now - timedelta(days=days)
+            # fix_date = datetime(2024, 2, 26)
+            date = datetime.today()
+            # days = (date - fix_date).days
+            # date = date - timedelta(days=days)
             
             logging.info("Start Project")
             super().__init__(date=date)

@@ -63,9 +63,9 @@ class FOLDER:
                     
                     
 class validate_files(FOLDER):
+    
     skip_rows = []
     insert_rows = []
-    
     @staticmethod
     def clean_lines_excel(full_path):
         
@@ -99,7 +99,7 @@ class validate_files(FOLDER):
     
     @classmethod
     def generate_excel_data(cls, full_path):
-        
+        logging.info("Generate Excel files to Dataframe..")
         key = {}
         clean_data = iter(cls.clean_lines_excel(full_path))
         
@@ -117,7 +117,7 @@ class validate_files(FOLDER):
     
     @classmethod
     def generate_text_data(cls, full_path):
-        
+        logging.info("Generate Text files to Dataframe..")
         key = {}
         rows = 0
         line_regex = iter(cls.clean_lines_text(full_path))
@@ -163,46 +163,47 @@ class validate_files(FOLDER):
         return key
     
     @classmethod
-    def update_data(cls, target_df, new_df):
+    def check_up_data(cls, mark_df, new_df):
+        logging.info("Check Changed Data or Not Change in Data..")
         
-        if len(target_df.index) > len(new_df.index):
-            cls.skip_rows = [idx for idx in list(target_df.index) if idx not in list(new_df.index)]
+        if len(mark_df.index) > len(new_df.index):
+            cls.skip_rows = [idx for idx in list(mark_df.index) if idx not in list(new_df.index)]
         
-        union_index = np.union1d(target_df.index, new_df.index)
+        union_index = np.union1d(mark_df.index, new_df.index)
         ## set old record
-        target_df = target_df.reindex(index=union_index, columns=target_df.columns)
+        mark_df = mark_df.reindex(index=union_index, columns=mark_df.columns)
         
         ## set new record
         new_df = new_df.reindex(index=union_index, columns=new_df.columns)
         
         ## set column change / skip in new_df 
-        new_df['change'] = pd.DataFrame(np.where(new_df.ne(target_df), True, False), index=new_df.index, columns=new_df.columns)\
+        new_df['change'] = pd.DataFrame(np.where(new_df.ne(mark_df), True, False), index=new_df.index, columns=new_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
         new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
         
         ## set column change / skip in old_df 
-        target_df['change'] = new_df['change']
-        target_df['skip'] = target_df.apply(lambda x: x.isna()).all(axis=1)
+        mark_df['change'] = new_df['change']
+        mark_df['skip'] = mark_df.apply(lambda x: x.isna()).all(axis=1)
         
         for idx in union_index:
             if idx not in cls.skip_rows:
-                for target, new in zip(target_df.items(), new_df.items()):
-                    if target_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
+                for mark, new in zip(mark_df.items(), new_df.items()):
+                    if mark_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
                         if new_df.loc[idx, 'change'] <= 1:
                             ## not change rows
-                            target_df.at[idx, target[0]] = target[1].iloc[idx]
+                            mark_df.at[idx, mark[0]] = mark[1].iloc[idx]
                         else:
                             ## update rows
-                            target_df.at[idx, target[0]] = new[1].iloc[idx]
+                            mark_df.at[idx, mark[0]] = new[1].iloc[idx]
                     else:
                         ## insert rows
-                        target_df.at[idx, target[0]] = new[1].iloc[idx]
+                        mark_df.at[idx, mark[0]] = new[1].iloc[idx]
             else:
                 ## delete rows
                 continue
             
-        target_df = target_df.loc[target_df['change'] > 1].drop(['change', 'skip'], axis=1)
-        output = target_df.to_dict('index')
+        mark_df = mark_df.loc[mark_df['change'] > 1].drop(['change', 'skip'], axis=1)
+        output = mark_df.to_dict('index')
         
         return output
     
@@ -217,34 +218,34 @@ class validate_files(FOLDER):
             date = tmp_df['CreateDate'].unique()
             
             ## select row not use for compare
-            keep_date = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
-            max_rows = max(keep_date, default=0)
+            mark_df = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
+            max_rows = max(mark_df, default=0)
             
             ## select row use for compare / mark data for compare with tmp
-            mask_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-            compare_data = cls.update_data(mask_date, tmp_df)
-            mask_date = mask_date.to_dict('index')
+            select_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
+            compare_data = cls.check_up_data(select_df, tmp_df)
+            select_date = select_df.to_dict('index')
             
             ## compare target change / not change
             for key, value in compare_data.items():
                 if key not in cls.skip_rows:
                     try:
-                        if value != mask_date[key]:
-                            mask_date.pop(key)
-                        mask_date[key] = value
+                        if value != select_date[key]:
+                            select_date.pop(key)
+                        select_date[key] = value
                     except KeyError:
-                        mask_date[key] = value
+                        select_date[key] = value
                 else:
-                    if value == mask_date[key]:
-                        mask_date.pop(key)
+                    if value == select_date[key]:
+                        select_date.pop(key)
                         
-            for value in mask_date.values():
+            for value in select_date.values():
                 max_rows += 1
-                keep_date[max_rows] = value
-                keep_date[max_rows]['inserted'] =  True
+                mark_df[max_rows] = value
+                mark_df[max_rows]['inserted'] =  True
             
             ## set ordered rows 
-            ordered = sorted([keep_date[value] for value in keep_date], key=operator.itemgetter('CreateDate'))
+            ordered = sorted([mark_df[value] for value in mark_df], key=operator.itemgetter('CreateDate'))
             sorted_rows = iter(ordered)
             while True:
                 try:
