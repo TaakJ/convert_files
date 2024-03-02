@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import operator
+import openpyxl
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -66,6 +67,8 @@ class validate_files(FOLDER):
     
     skip_rows = []
     insert_rows = []
+    diff_rows = {}
+    
     @staticmethod
     def clean_lines_excel(full_path):
         
@@ -163,105 +166,117 @@ class validate_files(FOLDER):
         return key
     
     @classmethod
-    def check_up_data(cls, mark_df, new_df):
+    def check_up_data(cls, diff_df, new_df):
         logging.info("Check Changed Data or Not Change in Data..")
         
-        if len(mark_df.index) > len(new_df.index):
-            cls.skip_rows = [idx for idx in list(mark_df.index) if idx not in list(new_df.index)]
+        if len(diff_df.index) > len(new_df.index):
+            cls.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
         
-        union_index = np.union1d(mark_df.index, new_df.index)
-        ## set old record
-        mark_df = mark_df.reindex(index=union_index, columns=mark_df.columns)
+        ## reset index data
+        union_index = np.union1d(diff_df.index, new_df.index)
         
-        ## set new record
-        new_df = new_df.reindex(index=union_index, columns=new_df.columns)
+        ## target / tmp data
+        diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
         
-        ## set column change / skip in new_df 
-        new_df['change'] = pd.DataFrame(np.where(new_df.ne(mark_df), True, False), index=new_df.index, columns=new_df.columns)\
+        ## new data
+        new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
+        
+        # compare data rows by rows
+        diff_df['changed'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
-        new_df['skip'] = new_df.apply(lambda x: x.isna()).all(axis=1)
         
-        ## set column change / skip in old_df 
-        mark_df['change'] = new_df['change']
-        mark_df['skip'] = mark_df.apply(lambda x: x.isna()).all(axis=1)
-        
+        start_rows = 2
         for idx in union_index:
             if idx not in cls.skip_rows:
-                for mark, new in zip(mark_df.items(), new_df.items()):
-                    if mark_df.loc[idx, 'skip'] == new_df.loc[idx, 'skip']:
-                        if new_df.loc[idx, 'change'] <= 1:
-                            ## not change rows
-                            mark_df.at[idx, mark[0]] = mark[1].iloc[idx]
+                
+                changed_value = {}
+                for diff, new in zip(diff_df.items(), new_df.items()):
+                    if diff_df.loc[idx, 'changed'] != 14:
+                        
+                        if diff_df.loc[idx, 'changed'] <= 1: 
+                            diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
+                            diff_df.loc[idx, 'recoreded'] = 'No_changed'
+                            
                         else:
-                            ## update rows
-                            mark_df.at[idx, mark[0]] = new[1].iloc[idx]
+                            if (diff[1][idx] != new[1][idx]): 
+                                changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"}) 
+                            cls.diff_rows[start_rows + idx] = changed_value
+                            
+                            diff_df.at[idx, diff[0]] = new[1].iloc[idx]
+                            diff_df.loc[idx, 'recoreded'] = 'Updated'
+                            
                     else:
-                        ## insert rows
-                        mark_df.at[idx, mark[0]] = new[1].iloc[idx]
+                        changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
+                        cls.diff_rows[start_rows + idx] = changed_value
+                        
+                        diff_df.at[idx, diff[0]] = new[1].iloc[idx]
+                        diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
-                ## delete rows
-                continue
-            
-        mark_df = mark_df.loc[mark_df['change'] > 1].drop(['change', 'skip'], axis=1)
-        output = mark_df.to_dict('index')
+                diff_df.loc[idx, 'recoreded'] = 'Removed'
+        
+        cls.skip_rows = [start_rows + row for row in cls.skip_rows]
+        
+        diff_df = diff_df.drop(['changed'], axis=1)
+        diff_df = diff_df.to_dict('index')
+        output = {start_rows + row: diff_df[row] for row in diff_df}  
         
         return output
     
     @classmethod
-    def get_data_target(cls, target_name, tmp_df):
+    def append_target_data(cls, target_df, tmp_df):
+        ''
         
-        target_df = pd.read_excel(target_name)
-        start_rows = 2
-        output = {}
+        # target_df = pd.read_excel(target_name)
+        # start_rows = 2
+        # output = {}
+
+        # date = tmp_df['CreateDate'].unique()
         
-        if not target_df.empty:
-            date = tmp_df['CreateDate'].unique()
-            
-            ## select row not use for compare
-            mark_df = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
-            max_rows = max(mark_df, default=0)
-            
-            ## select row use for compare / mark data for compare with tmp
-            select_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-            compare_data = cls.check_up_data(select_df, tmp_df)
-            select_date = select_df.to_dict('index')
-            
-            ## compare target change / not change
-            for key, value in compare_data.items():
-                if key not in cls.skip_rows:
-                    try:
-                        if value != select_date[key]:
-                            select_date.pop(key)
-                        select_date[key] = value
-                    except KeyError:
-                        select_date[key] = value
-                else:
-                    if value == select_date[key]:
-                        select_date.pop(key)
-                        
-            for value in select_date.values():
-                max_rows += 1
-                mark_df[max_rows] = value
-                mark_df[max_rows]['inserted'] =  True
-            
-            ## set ordered rows 
-            ordered = sorted([mark_df[value] for value in mark_df], key=operator.itemgetter('CreateDate'))
-            sorted_rows = iter(ordered)
-            while True:
-                try:
-                    value = next(sorted_rows)
-                    output.update({start_rows: value})
+        # ## select row not use for compare
+        # mark_df = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
+        # max_rows = max(mark_df, default=0)
+        
+        # ## select row use for compare / mark data for compare with tmp
+        # select_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
+        # compare_data = cls.check_up_data(select_df, tmp_df)
+        # select_date = select_df.to_dict('index')
+        
+        # ## compare target change / not change
+        # for key, value in compare_data.items():
+        #     if key not in cls.skip_rows:
+        #         try:
+        #             if value != select_date[key]:
+        #                 select_date.pop(key)
+        #             select_date[key] = value
+        #         except KeyError:
+        #             select_date[key] = value
+        #     else:
+        #         if value == select_date[key]:
+        #             select_date.pop(key)
                     
-                    if value.get('inserted'):
-                        cls.insert_rows.append(start_rows)
-                        value.pop('inserted')
-                        
-                except StopIteration:
-                    break
-                start_rows += 1
-                
-        else:
-            tmp_df = tmp_df.to_dict('index')
-            output = {start_rows + key: value for key,value in tmp_df.items()}
+        # for value in select_date.values():
+        #     max_rows += 1
+        #     mark_df[max_rows] = value
+        #     mark_df[max_rows]['inserted'] =  True
         
-        return output
+        # ## set ordered rows 
+        # ordered = sorted([mark_df[value] for value in mark_df], key=operator.itemgetter('CreateDate'))
+        # sorted_rows = iter(ordered)
+        # while True:
+        #     try:
+        #         value = next(sorted_rows)
+        #         output.update({start_rows: value})
+                
+        #         if value.get('inserted'):
+        #             cls.insert_rows.append(start_rows)
+        #             value.pop('inserted')
+                    
+        #     except StopIteration:
+        #         break
+        #     start_rows += 1
+            
+    # else:
+    #     tmp_df = tmp_df.to_dict('index')
+    #     output = {start_rows + key: value for key,value in tmp_df.items()}
+    
+        return 'output'
