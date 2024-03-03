@@ -12,7 +12,6 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import operator
-import openpyxl
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
@@ -198,7 +197,7 @@ class validate_files(FOLDER):
                             diff_df.loc[idx, 'recoreded'] = 'No_changed'
                             
                         else:
-                            if (diff[1][idx] != new[1][idx]): 
+                            if diff[1][idx] != new[1][idx]: 
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"}) 
                             cls.diff_rows[start_rows + idx] = changed_value
                             
@@ -212,71 +211,61 @@ class validate_files(FOLDER):
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
+                diff_df.loc[idx, 'LastUpdatedDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
         
         cls.skip_rows = [start_rows + row for row in cls.skip_rows]
         
         diff_df = diff_df.drop(['changed'], axis=1)
         diff_df = diff_df.to_dict('index')
-        output = {start_rows + row: diff_df[row] for row in diff_df}  
+        output = {start_rows + row: diff_df[row] for row in diff_df}
         
         return output
     
     @classmethod
     def append_target_data(cls, target_df, tmp_df):
-        ''
         
-        # target_df = pd.read_excel(target_name)
-        # start_rows = 2
-        # output = {}
-
-        # date = tmp_df['CreateDate'].unique()
+        start_rows = 2
+        date = tmp_df['CreateDate'].unique()
         
-        # ## select row not use for compare
-        # mark_df = target_df[~target_df['CreateDate'].isin(date)].to_dict('index')
-        # max_rows = max(mark_df, default=0)
         
-        # ## select row use for compare / mark data for compare with tmp
-        # select_df = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-        # compare_data = cls.check_up_data(select_df, tmp_df)
-        # select_date = select_df.to_dict('index')
+        ## compare data new data with target data (mask date)
+        mark_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
+        new_df = cls.check_up_data(mark_date, tmp_df)
         
-        # ## compare target change / not change
-        # for key, value in compare_data.items():
-        #     if key not in cls.skip_rows:
-        #         try:
-        #             if value != select_date[key]:
-        #                 select_date.pop(key)
-        #             select_date[key] = value
-        #         except KeyError:
-        #             select_date[key] = value
-        #     else:
-        #         if value == select_date[key]:
-        #             select_date.pop(key)
-                    
-        # for value in select_date.values():
-        #     max_rows += 1
-        #     mark_df[max_rows] = value
-        #     mark_df[max_rows]['inserted'] =  True
+        ## unique date other (mask date)
+        diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
+        diff_date = diff_date.to_dict('index')
+        # diff_date = {start_rows + row: diff_date[row] for row in diff_date}
+        max_rows = max(diff_date, default=0)
+        for value in new_df.values():
+            max_rows += 1
+            diff_date[max_rows] = value
         
-        # ## set ordered rows 
-        # ordered = sorted([mark_df[value] for value in mark_df], key=operator.itemgetter('CreateDate'))
-        # sorted_rows = iter(ordered)
-        # while True:
-        #     try:
-        #         value = next(sorted_rows)
-        #         output.update({start_rows: value})
+        ## set ordered rows
+        output = {}
+        ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
+        sorted_rows = iter(ordered)
+        
+        change_value = []
+        while True:
+            try:
+                rows = next(sorted_rows)
+                output.update({start_rows: rows})
                 
-        #         if value.get('inserted'):
-        #             cls.insert_rows.append(start_rows)
-        #             value.pop('inserted')
+                if start_rows in cls.diff_rows:
+                    print(start_rows)
                     
-        #     except StopIteration:
-        #         break
-        #     start_rows += 1
+            except StopIteration:
+                break
+            start_rows += 1
             
-    # else:
-    #     tmp_df = tmp_df.to_dict('index')
-    #     output = {start_rows + key: value for key,value in tmp_df.items()}
-    
-        return 'output'
+        # for x,y in cls.diff_rows.items():
+        #     print(x)
+        #     print(y)
+            
+        # for x, v in output.items():
+        #     print(x)
+        #     print(v)
+            
+        return output

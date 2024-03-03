@@ -76,9 +76,9 @@ class convert_2_file(validate_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -122,10 +122,8 @@ class convert_2_file(validate_files):
         
         logging.info('Compare Data to Tmp files..')
         tmp_name = f"{self.LOG}DD_{self.date.strftime('%d%m%Y')}.xlsx"
-        status = 'failed'
-    
         workbook = openpyxl.Workbook()
-        workbook.active 
+        status = 'failed'
         
         for key in self.logging:
             try:
@@ -141,6 +139,8 @@ class convert_2_file(validate_files):
                         get_sheet = workbook.get_sheet_names()
                         sheet_num = len(get_sheet)
                         sheet_name = f'RUN_TIME_{sheet_num}'
+                        workbook.active = sheet_num
+                        
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
                         
@@ -174,17 +174,18 @@ class convert_2_file(validate_files):
                             start_rows += 1
                         
                     except FileNotFoundError:
-                        
                         ## write tmp files on first time. 
                         sheet_name = 'RUN_TIME_1'
                         sheet = workbook.worksheets[0]
+                        sheet_num = 1
                         sheet.title = sheet_name
                         
                         rows = dataframe_to_rows(new_df, header=True, index=False)
                         for r_idx, row in enumerate(rows, 1):
                             for c_idx, value in enumerate(row, 1):
                                 sheet.cell(row=r_idx, column=c_idx).value = value
-                        
+                    
+                    workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
                     status = 'successed'
                     
@@ -203,32 +204,40 @@ class convert_2_file(validate_files):
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
         
-        workbook = openpyxl.load_workbook(target_name)
-        get_sheet = workbook.get_sheet_names()
-        sheet = workbook.get_sheet_by_name(get_sheet[0])
-        workbook.active
-        
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
+                    
                     tmp_name = key['full_path']
-                    status = key['status']
-                    sheet_name = key['sheet_name']
-                    
-                    key.update({'full_path': target_name, 'status': status})
-                    
-                    target_df = pd.read_excel(target_name)
-                    if status == 'successed':
+                    sheet_name = key['sheet_name']              
+                    try:
+                        ## read target file
+                        target_df = pd.read_excel(target_name)
+                        target_df['recoreded'] = 'Inserted'
+                        
+                        ## read tmp file
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
-                    else:
-                        raise FileNotFoundError(f"File Not Found: {tmp_name}")
-                    
-                    print(tmp_df)
+                        
+                        ## compare data tmp data with target data
+                        if not target_df.empty:
+                            tmp_df = self.append_target_data(target_df, tmp_df)
+                        else:
+                            continue
+                            
+                    except Exception as err:
+                        key.update({'errors': err})
                     
                     key.update({'full_path': target_name, 'status': status})
                     
                     # ## write data to target file
+                    ## read target files
+                    # workbook = openpyxl.load_workbook(target_name)
+                    # workbook.active
+                    # sheet = workbook.worksheets[0]
+                    # data = sheet.values
+                    # columns = next(data)[0:]
+                    # target_df = pd.DataFrame(data, columns=columns)
                     # start_rows = 2
                     # while start_rows <= max(output):
                     #     if start_rows in self.insert_rows:
@@ -258,59 +267,3 @@ class convert_2_file(validate_files):
                 
         if 'errors' in key:
             raise CustomException(self.logging)
-    
-    
-    # def write_to_file(self):
-        
-    #     logging.info("Write Data to Target files..")
-    #     target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
-        
-    #     workbook = openpyxl.load_workbook(target_name)
-    #     get_sheet = workbook.get_sheet_names()
-    #     sheet = workbook.get_sheet_by_name(get_sheet[0])
-    #     workbook.active
-        
-    #     for key in self.logging:
-    #         try:
-    #             status = 'failed'
-    #             if key['source'] == 'Target_file':
-    #                 filename = key['full_path']
-    #                 status = key['status']
-                    
-    #                 if status == 'successed':
-    #                     tmp_df = pd.read_csv(filename)
-    #                     output = self.get_data_target(target_name, tmp_df)
-    #                 else:
-    #                     raise CustomException(self.logging)
-    #                 key.update({'full_path': target_name, 'status': status})
-                    
-    #                 ## write data to target file
-    #                 start_rows = 2
-    #                 while start_rows <= max(output):
-    #                     if start_rows in self.insert_rows:
-    #                         for idx, value in enumerate(output[start_rows].values(), 1):
-    #                             sheet.cell(row=start_rows, column=idx).value = value
-    #                         logging.info(f"\033[1mWrote Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
-                        
-    #                     else:
-    #                         for idx, value in enumerate(output[start_rows].values(), 1):
-    #                             sheet.cell(row=start_rows, column=idx).value = value   
-    #                     start_rows += 1
-                    
-    #                 ## check deleted rows
-    #                 if len(self.skip_rows) != 0:
-    #                     rows = max(output) + 1
-    #                     logging.info(f"\033[1mDeleted Rows: {rows} to {sheet.max_row} tp  in Target files.\033[0m")
-    #                     sheet.delete_rows(idx=rows, amount=len(self.skip_rows))
-                    
-    #                 workbook.save(target_name)
-    #                 status = 'successed'
-                    
-    #                 key.update({'status': status})
-    #                 logging.info(f"write to target files status: {status}.")
-                    
-    #         except Exception as err:
-    #             key.update({'errors': err})
-                
-    #     if 'errors' in key:
-    #         raise CustomException(self.logging)

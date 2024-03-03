@@ -375,3 +375,59 @@
     #         output = {start_rows + key: value for key,value in tmp_df.items()}
         
     #     return output
+
+
+       # def write_to_file(self):
+        
+    #     logging.info("Write Data to Target files..")
+    #     target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
+        
+    #     workbook = openpyxl.load_workbook(target_name)
+    #     get_sheet = workbook.get_sheet_names()
+    #     sheet = workbook.get_sheet_by_name(get_sheet[0])
+    #     workbook.active
+        
+    #     for key in self.logging:
+    #         try:
+    #             status = 'failed'
+    #             if key['source'] == 'Target_file':
+    #                 filename = key['full_path']
+    #                 status = key['status']
+                    
+    #                 if status == 'successed':
+    #                     tmp_df = pd.read_csv(filename)
+    #                     output = self.get_data_target(target_name, tmp_df)
+    #                 else:
+    #                     raise CustomException(self.logging)
+    #                 key.update({'full_path': target_name, 'status': status})
+                    
+    #                 ## write data to target file
+    #                 start_rows = 2
+    #                 while start_rows <= max(output):
+    #                     if start_rows in self.insert_rows:
+    #                         for idx, value in enumerate(output[start_rows].values(), 1):
+    #                             sheet.cell(row=start_rows, column=idx).value = value
+    #                         logging.info(f"\033[1mWrote Rows: {start_rows} in Target files. Recorded: {output[start_rows]}\033[0m")
+                        
+    #                     else:
+    #                         for idx, value in enumerate(output[start_rows].values(), 1):
+    #                             sheet.cell(row=start_rows, column=idx).value = value   
+    #                     start_rows += 1
+                    
+    #                 ## check deleted rows
+    #                 if len(self.skip_rows) != 0:
+    #                     rows = max(output) + 1
+    #                     logging.info(f"\033[1mDeleted Rows: {rows} to {sheet.max_row} tp  in Target files.\033[0m")
+    #                     sheet.delete_rows(idx=rows, amount=len(self.skip_rows))
+                    
+    #                 workbook.save(target_name)
+    #                 status = 'successed'
+                    
+    #                 key.update({'status': status})
+    #                 logging.info(f"write to target files status: {status}.")
+                    
+    #         except Exception as err:
+    #             key.update({'errors': err})
+                
+    #     if 'errors' in key:
+    #         raise CustomException(self.logging)
