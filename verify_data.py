@@ -63,7 +63,6 @@ class FOLDER:
                     
                     
 class validate_files(FOLDER):
-    
     diff_rows = {}
     skip_rows = []
     
@@ -223,6 +222,8 @@ class validate_files(FOLDER):
     
     @classmethod
     def append_target_data(cls, target_df, tmp_df):
+        
+        logging.info("Append Target Data..")
         
         start_rows = 2
         date = tmp_df['CreateDate'].unique()

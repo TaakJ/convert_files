@@ -25,9 +25,11 @@ class convert_2_file(validate_files):
     def logging(self):
         return self.__log
     
+    
     @logging.setter
     def logging(self, log):
         self.__log = log
+    
     
     def check_success_files(call_method):
         def fn_success_files(self):
@@ -57,6 +59,7 @@ class convert_2_file(validate_files):
         
         return fn_success_files
     
+    
     @check_success_files
     def get_list_files(self):
         
@@ -67,6 +70,7 @@ class convert_2_file(validate_files):
             
         self.logging = log
         return self.logging
+    
     
     def sample(call_method):
         logging.info("Mock Data")
@@ -87,6 +91,7 @@ class convert_2_file(validate_files):
             call_method(self).append({'source': 'Target_file', 'data': df.to_dict('list')})
             
         return fn_mock_data
+    
     
     @sample
     def get_data_files(self):
@@ -118,6 +123,7 @@ class convert_2_file(validate_files):
         
         return self.logging
     
+    
     def compare_data_to_file(self):
         
         logging.info('Compare Data to Tmp files..')
@@ -125,6 +131,7 @@ class convert_2_file(validate_files):
         workbook = openpyxl.Workbook()
         status = 'failed'
         
+        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
@@ -152,12 +159,11 @@ class convert_2_file(validate_files):
                         sheet_name = f'RUN_TIME_{sheet_num + 1}'
                         sheet = workbook.create_sheet(sheet_name)
                         
-                        start_rows = 2
                         header =  [columns for columns in new_df[start_rows].keys()]
                         sheet.append(header)
-                        
                         while start_rows <= max(new_df):
                             for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
+                                
                                 for idx, value in enumerate(new_df[start_rows].values(), 1):
                                     sheet.cell(row=start_rows, column=idx).value = value
                                     
@@ -198,24 +204,27 @@ class convert_2_file(validate_files):
             if 'errors' in key:
                 raise CustomException(self.logging)
             
+            
     def write_to_file(self):
         
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
         
+        header = 1
+        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
                     
-                    tmp_name = key['full_path']
-                    sheet_name = key['sheet_name']              
                     try:
                         ## read target file
                         target_df = pd.read_excel(target_name)
                         target_df['recoreded'] = 'Inserted'
                         
                         ## read tmp file
+                        tmp_name = key['full_path']
+                        sheet_name = key['sheet_name']   
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
                         
@@ -223,12 +232,13 @@ class convert_2_file(validate_files):
                         if not target_df.empty:
                             new_df = self.append_target_data(target_df, tmp_df)
                         else:
-                            continue
-                            
+                            new_df = tmp_df.to_dict('index')
+                            new_df = {start_rows + row: tmp_df[row] for row in new_df}
+                        
+                        key.update({'full_path': target_name, 'status': status})
+                        
                     except Exception as err:
                         key.update({'errors': err})
-                    
-                    key.update({'full_path': target_name, 'status': status})
                     
                     ## write data to target file
                     workbook = openpyxl.load_workbook(target_name)
@@ -236,8 +246,6 @@ class convert_2_file(validate_files):
                     sheet = workbook.get_sheet_by_name(get_sheet[0])
                     workbook.active
                     
-                    header = 1
-                    start_rows = 2
                     while start_rows <= max(new_df):
                         for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
                             
