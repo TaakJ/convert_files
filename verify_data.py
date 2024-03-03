@@ -64,9 +64,8 @@ class FOLDER:
                     
 class validate_files(FOLDER):
     
-    skip_rows = []
-    insert_rows = []
     diff_rows = {}
+    skip_rows = []
     
     @staticmethod
     def clean_lines_excel(full_path):
@@ -228,17 +227,18 @@ class validate_files(FOLDER):
         start_rows = 2
         date = tmp_df['CreateDate'].unique()
         
-        
         ## compare data new data with target data (mask date)
         mark_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
         new_df = cls.check_up_data(mark_date, tmp_df)
         
-        ## unique date other (mask date)
+        ## unique date other (not mask date)
         diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
         diff_date = diff_date.to_dict('index')
-        # diff_date = {start_rows + row: diff_date[row] for row in diff_date}
         max_rows = max(diff_date, default=0)
-        for value in new_df.values():
+        
+        for key, value in new_df.items():
+            if key in cls.diff_rows:
+                value['diff_rows'] = key
             max_rows += 1
             diff_date[max_rows] = value
         
@@ -247,25 +247,17 @@ class validate_files(FOLDER):
         ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
         sorted_rows = iter(ordered)
         
-        change_value = []
         while True:
             try:
                 rows = next(sorted_rows)
                 output.update({start_rows: rows})
-                
-                if start_rows in cls.diff_rows:
-                    print(start_rows)
+                if rows.get('diff_rows'):
+                    if rows['diff_rows'] in cls.diff_rows:
+                        cls.diff_rows[start_rows] = cls.diff_rows.pop(rows['diff_rows'])
+                    rows.pop('diff_rows')
                     
             except StopIteration:
                 break
             start_rows += 1
-            
-        # for x,y in cls.diff_rows.items():
-        #     print(x)
-        #     print(y)
-            
-        # for x, v in output.items():
-        #     print(x)
-        #     print(v)
             
         return output
