@@ -13,7 +13,7 @@ class start_project(convert_2_file):
         # self.setup_folder()
         
         try:
-            fix_date = datetime(2024, 2, 26)
+            fix_date = datetime(2024, 2, 27)
             date = datetime.today()
             days = (date - fix_date).days
             date = date - timedelta(days=days)

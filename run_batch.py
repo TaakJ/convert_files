@@ -71,7 +71,7 @@ class convert_2_file(validate_files):
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70],
                         # [71,72,73,74,75,76,77,78,79,80,self.date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83],
@@ -186,13 +186,13 @@ class convert_2_file(validate_files):
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
-        
+
         def remove_empty(sheet):
             for row in sheet.iter_rows():
                 if not all(cell.value for cell in row):
                     sheet.delete_rows(row[0].row, 1)
                     remove_empty(sheet)
-                    
+
         start_rows = 2
         for key in self.logging:
             try:
@@ -231,7 +231,7 @@ class convert_2_file(validate_files):
                                     show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
                                 elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
                                     show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
-                                    sheet.delete_rows(start_rows, sheet.max_row)
+                                    sheet.delete_rows(start_rows,sheet.max_row)
                                 else:
                                     show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
                             else:
@@ -240,14 +240,12 @@ class convert_2_file(validate_files):
                                 sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]
                                 continue
                             logging.info(show)
+                        remove_empty(sheet)
                         start_rows += 1
-                        
-                    ## remove empty rows
-                    [remove_empty(sheet) for _ in sheet]
                         
                     workbook.save(target_name)
                     status = 'successed'
-                    
+
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
             except Exception as err:
