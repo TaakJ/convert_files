@@ -76,8 +76,8 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
                         # [71,72,73,74,75,76,77,78,79,80,self.date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83]
@@ -245,35 +245,34 @@ class convert_2_file(validate_files):
                     sheet = workbook.get_sheet_by_name(get_sheet[0])
                     workbook.active
                     
-                    for x, y in new_df.items():
-                        print(x)
-                        print(y)
-                    
-                    # while start_rows <= max(new_df):
-                    #     for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
-                    #         for idx , values in enumerate([values for values in new_df[start_rows].values() if values != recoreded], 1):
-                    #             sheet.cell(row=start_rows, column=idx).value = values
+                    while start_rows <= max(new_df):
+                        for idx, columns in enumerate(new_df[start_rows].keys(), 1):
+                            if columns == 'recoreded':
+                                if start_rows in self.diff_rows.keys() and new_df[start_rows][columns] in ['Updated', 'Inserted']:
+                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                                    
+                                elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
+                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                    sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
+                                    
+                                else:
+                                    show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                            else:
+                                if start_rows in self.skip_rows:
+                                    continue
                                 
-                    #         if start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
-                    #             show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
-                            
-                    #         elif start_rows in self.skip_rows and recoreded == 'Removed':
-                    #             show = f"\033[1mRemoved\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
-                    #             sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
-                            
-                    #         else:
-                    #             show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]   
+                                continue
                                 
-                    #         new_df[start_rows].pop('recoreded')
-                            
-                    #         logging.info(show) 
-                    #     start_rows += 1
+                            print(show)
+                            logging.info(show)
+                        start_rows += 1
                     
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                    workbook.save(target_name)
+                    status = 'successed'
                     
-                    # key.update({'status': status})
-                    # logging.info(f"write to target files status: {status}.")
+                    key.update({'status': status})
+                    logging.info(f"write to target files status: {status}.")
                     
             except Exception as err:
                 key.update({'errors': err})
