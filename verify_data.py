@@ -192,24 +192,26 @@ class validate_files(FOLDER):
                         
                         if diff_df.loc[idx, 'changed'] <= 1: 
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
+                            ## No_changed
                             diff_df.loc[idx, 'recoreded'] = 'No_changed'
                             
                         else:
                             if diff[1][idx] != new[1][idx]: 
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"}) 
                             cls.diff_rows[start_rows + idx] = changed_value
-                            
+                            ## Updated
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
                             
                     else:
                         changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
                         cls.diff_rows[start_rows + idx] = changed_value
-                        
+                        ## Inserted
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
                 diff_df.loc[idx, 'LastUpdatedDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                ## Removed
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
         
         cls.skip_rows = [start_rows + row for row in cls.skip_rows]
@@ -222,7 +224,6 @@ class validate_files(FOLDER):
     
     @classmethod
     def append_target_data(cls, target_df, tmp_df):
-        
         logging.info("Append Target Data..")
         
         start_rows = 2
@@ -238,27 +239,34 @@ class validate_files(FOLDER):
         max_rows = max(diff_date, default=0)
         
         for key, value in new_df.items():
-            if key in cls.diff_rows:
+            if key in cls.diff_rows or key in cls.skip_rows:
                 value['diff_rows'] = key
             max_rows += 1
             diff_date[max_rows] = value
-        
+            
         ## set ordered rows
         output = {}
         ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
         sorted_rows = iter(ordered)
         
+        idx = 0
         while True:
             try:
                 rows = next(sorted_rows)
                 output.update({start_rows: rows})
+                
                 if rows.get('diff_rows'):
+                    ## diff rows
                     if rows['diff_rows'] in cls.diff_rows:
                         cls.diff_rows[start_rows] = cls.diff_rows.pop(rows['diff_rows'])
+                    ## skip rows
+                    elif rows['diff_rows'] in cls.skip_rows:
+                        cls.skip_rows[idx] = start_rows
+                        idx += 1
                     rows.pop('diff_rows')
                     
             except StopIteration:
                 break
             start_rows += 1
-            
+        
         return output

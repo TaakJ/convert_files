@@ -78,7 +78,7 @@ class convert_2_file(validate_files):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [10,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
@@ -131,7 +131,6 @@ class convert_2_file(validate_files):
         workbook = openpyxl.Workbook()
         status = 'failed'
         
-        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
@@ -161,6 +160,8 @@ class convert_2_file(validate_files):
                         
                         header =  [columns for columns in new_df[start_rows].keys()]
                         sheet.append(header)
+                        
+                        start_rows = 2
                         while start_rows <= max(new_df):
                             for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
                                 
@@ -180,6 +181,7 @@ class convert_2_file(validate_files):
                             start_rows += 1
                         
                     except FileNotFoundError:
+                        
                         ## write tmp files on first time. 
                         sheet_name = 'RUN_TIME_1'
                         sheet = workbook.worksheets[0]
@@ -211,8 +213,6 @@ class convert_2_file(validate_files):
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
         
-        header = 1
-        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
@@ -225,16 +225,14 @@ class convert_2_file(validate_files):
                         ## read tmp file
                         tmp_name = key['full_path']
                         sheet_name = key['sheet_name']   
-                        tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
+                        new_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
+                        new_df = new_df.loc[new_df['recoreded'] != 'Removed']
                         
                         ## compare data tmp data with target data
                         if not target_df.empty:
-                            new_df = self.append_target_data(target_df, tmp_df)
+                            new_df = self.append_target_data(target_df, new_df)
                         else:
                             continue
-                            # new_df = tmp_df.to_dict('index')
-                            # new_df = {start_rows + row: tmp_df[row] for row in new_df}
                         
                         key.update({'full_path': target_name, 'status': status})
                         
@@ -246,16 +244,10 @@ class convert_2_file(validate_files):
                     get_sheet = workbook.get_sheet_names()
                     sheet = workbook.get_sheet_by_name(get_sheet[0])
                     workbook.active
-                        
-                    for x, y in new_df.items():
-                        print(x)
-                        print(self.skip_rows)
-                        print(y)
-                        
+                    
+                    start_rows = 2
                     while start_rows <= max(new_df):
-                        
                         for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
-                            
                             for idx, value in enumerate(new_df[start_rows].values(), 1):
                                 sheet.cell(row=start_rows, column=idx).value = value
                                 
@@ -263,19 +255,18 @@ class convert_2_file(validate_files):
                                 show = f"{recoreded} Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
                             
                             elif start_rows in self.skip_rows and recoreded == 'Removed':
-                                show = f"\033[1mRemoved Rows: {start_rows} in Target files.\033[0m"
-                            
+                                show = f"Removed Rows: \033[1m({start_rows})\033[0m in Target files."
+                                sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
+                                
                             else:
                                 show = f"No Change Rows: \033[1m({start_rows})\033[0m in Target files."
-                                # sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
                             new_df[start_rows].pop('recoreded')
                             
                             logging.info(show) 
-                            
                         start_rows += 1
                     
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                    workbook.save(target_name)
+                    status = 'successed'
                     
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
