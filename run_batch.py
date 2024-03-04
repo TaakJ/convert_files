@@ -70,12 +70,12 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
-                        # [71,72,73,74,75,76,77,78,79,80,self.date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83]
-                        # [84,85,86,87,88,89,90,91,92,93,self.date.strftime('%Y-%m-%d'),95,now.strftime('%Y-%m-%d %H:%M:%S'),96]
+                        # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70],
+                        # [71,72,73,74,75,76,77,78,79,80,self.date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83],
+                        # [84,85,86,87,88,89,90,91,92,93,self.date.strftime('%Y-%m-%d'),95,now.strftime('%Y-%m-%d %H:%M:%S'),96],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -186,7 +186,13 @@ class convert_2_file(validate_files):
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
-
+        
+        def remove_empty(sheet):
+            for row in sheet.iter_rows():
+                if not all(cell.value for cell in row):
+                    sheet.delete_rows(row[0].row, 1)
+                    remove_empty(sheet)
+                    
         start_rows = 2
         for key in self.logging:
             try:
@@ -233,11 +239,15 @@ class convert_2_file(validate_files):
                                     continue
                                 sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]
                                 continue
+                            print(show)
                             logging.info(show)
                         start_rows += 1
-
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                        
+                    ## remove empty rows
+                    [remove_empty(sheet) for _ in sheet]
+                        
+                    workbook.save(target_name)
+                    status = 'successed'
                     
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
