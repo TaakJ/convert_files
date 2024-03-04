@@ -63,6 +63,7 @@ class FOLDER:
                     
                     
 class validate_files(FOLDER):
+    
     diff_rows = {}
     skip_rows = []
     
@@ -99,6 +100,7 @@ class validate_files(FOLDER):
     
     @classmethod
     def generate_excel_data(cls, full_path):
+        
         logging.info("Generate Excel files to Dataframe..")
         key = {}
         clean_data = iter(cls.clean_lines_excel(full_path))
@@ -117,6 +119,7 @@ class validate_files(FOLDER):
     
     @classmethod
     def generate_text_data(cls, full_path):
+        
         logging.info("Generate Text files to Dataframe..")
         key = {}
         rows = 0
@@ -163,8 +166,8 @@ class validate_files(FOLDER):
         return key
     
     @classmethod
-    def check_up_data(cls, diff_df, new_df):
-        logging.info("Check Changed Data or Not Change in Data..")
+    def compare_data(cls, diff_df, new_df):
+        logging.info('Verify Changed information..')
         
         if len(diff_df.index) > len(new_df.index):
             cls.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
@@ -192,26 +195,22 @@ class validate_files(FOLDER):
                         
                         if diff_df.loc[idx, 'changed'] <= 1: 
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
-                            ## No_changed
                             diff_df.loc[idx, 'recoreded'] = 'No_changed'
                             
                         else:
                             if diff[1][idx] != new[1][idx]: 
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"}) 
                             cls.diff_rows[start_rows + idx] = changed_value
-                            ## Updated
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
                             
                     else:
                         changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
                         cls.diff_rows[start_rows + idx] = changed_value
-                        ## Inserted
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
                 diff_df.loc[idx, 'LastUpdatedDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                ## Removed
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
         
         cls.skip_rows = [start_rows + row for row in cls.skip_rows]
@@ -225,13 +224,12 @@ class validate_files(FOLDER):
     @classmethod
     def append_target_data(cls, target_df, tmp_df):
         logging.info("Append Target Data..")
-        
-        start_rows = 2
+        ## unique date
         date = tmp_df['CreateDate'].unique()
         
         ## compare data new data with target data (mask date)
         mark_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-        new_df = cls.check_up_data(mark_date, tmp_df)
+        new_df = cls.compare_data(mark_date, tmp_df)
         
         ## unique date other (not mask date)
         diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
@@ -250,6 +248,7 @@ class validate_files(FOLDER):
         sorted_rows = iter(ordered)
         
         idx = 0
+        start_rows = 2
         while True:
             try:
                 rows = next(sorted_rows)
@@ -263,7 +262,7 @@ class validate_files(FOLDER):
                     elif rows['diff_rows'] in cls.skip_rows:
                         cls.skip_rows[idx] = start_rows
                         idx += 1
-                    rows.pop('diff_rows')
+                    rows.pop('diff_rows') 
                     
             except StopIteration:
                 break

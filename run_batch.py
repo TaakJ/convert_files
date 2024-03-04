@@ -18,18 +18,16 @@ class convert_2_file(validate_files):
             
         self.get_list_files()
         self.get_data_files()
-        self.compare_data_to_file()
-        self.write_to_file()
+        self.write_data_to_tmp_file()
+        self.write_data_to_target_file()
         
     @property
     def logging(self):
         return self.__log
     
-    
     @logging.setter
     def logging(self, log):
         self.__log = log
-    
     
     def check_success_files(call_method):
         def fn_success_files(self):
@@ -59,7 +57,6 @@ class convert_2_file(validate_files):
         
         return fn_success_files
     
-    
     @check_success_files
     def get_list_files(self):
         
@@ -71,18 +68,20 @@ class convert_2_file(validate_files):
         self.logging = log
         return self.logging
     
-    
     def sample(call_method):
+        
         logging.info("Mock Data")
         def fn_mock_data(self):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'], 
-                        [10,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
+                        [1,2,3,4,5,6,7,8,9,10,self.date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
                         [15,16,17,18,19,20,21,22,23,24,self.date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
+                        [29,30,31,32,33,34,35,36,37,38,self.date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,self.date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,self.date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70]
+                        # [71,72,73,74,75,76,77,78,79,80,self.date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83]
+                        # [84,85,86,87,88,89,90,91,92,93,self.date.strftime('%Y-%m-%d'),95,now.strftime('%Y-%m-%d %H:%M:%S'),96]
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -92,9 +91,9 @@ class convert_2_file(validate_files):
             
         return fn_mock_data
     
-    
     @sample
     def get_data_files(self):
+        
         logging.info('Get Data from files..')
         status = 'failed'
         
@@ -123,14 +122,14 @@ class convert_2_file(validate_files):
         
         return self.logging
     
-    
-    def compare_data_to_file(self):
+    def write_data_to_tmp_file(self):
         
-        logging.info('Compare Data to Tmp files..')
+        logging.info("Write Data to Tmp files..")
         tmp_name = f"{self.LOG}DD_{self.date.strftime('%d%m%Y')}.xlsx"
         workbook = openpyxl.Workbook()
         status = 'failed'
         
+        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
@@ -151,31 +150,30 @@ class convert_2_file(validate_files):
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
                         
                         ## compare data new data with tmp data
-                        new_df = self.check_up_data(tmp_df, new_df)
+                        new_df = self.compare_data(tmp_df, new_df)
                         
                         ## write to tmp files
-                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
                         sheet_name = f'RUN_TIME_{sheet_num + 1}'
                         sheet = workbook.create_sheet(sheet_name)
+                        logging.info(f"Genarate Sheet_name: \033[1m{sheet_name}\033[0m in Tmp files.")
                         
                         header =  [columns for columns in new_df[start_rows].keys()]
                         sheet.append(header)
                         
-                        start_rows = 2
                         while start_rows <= max(new_df):
                             for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
                                 
-                                for idx, value in enumerate(new_df[start_rows].values(), 1):
-                                    sheet.cell(row=start_rows, column=idx).value = value
+                                for idx, values in enumerate(new_df[start_rows].values(), 1):
+                                    sheet.cell(row=start_rows, column=idx).value = values
                                     
                                 if start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
-                                    show = f"{recoreded} Rows: \033[1m({start_rows})\033[0m in Tmp files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
-                                    
+                                    show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                                
                                 elif start_rows in self.skip_rows and recoreded == 'Removed':
-                                    show = f"{recoreded} Rows: \033[1m({start_rows})\033[0m in Tmp files."
-                                    
+                                    show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
+                                
                                 else:
-                                    show = "\033[1mNo change data in Tmp files.\033[0m"
+                                    show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
                                     
                                 logging.info(show)
                             start_rows += 1
@@ -192,7 +190,9 @@ class convert_2_file(validate_files):
                         for r_idx, row in enumerate(rows, 1):
                             for c_idx, value in enumerate(row, 1):
                                 sheet.cell(row=r_idx, column=c_idx).value = value
-                    
+                            
+                            logging.info(f"\033[1mInserted\033[0m Rows: \033[1m({r_idx})\033[0m in Tmp files.")
+                            
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
                     status = 'successed'
@@ -206,17 +206,16 @@ class convert_2_file(validate_files):
             if 'errors' in key:
                 raise CustomException(self.logging)
             
-            
-    def write_to_file(self):
+    def write_data_to_target_file(self):
         
         logging.info("Write Data to Target files..")
         target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
         
+        start_rows = 2
         for key in self.logging:
             try:
                 if key['source'] == 'Target_file':
-                    
                     try:
                         ## read target file
                         target_df = pd.read_excel(target_name)
@@ -225,15 +224,16 @@ class convert_2_file(validate_files):
                         ## read tmp file
                         tmp_name = key['full_path']
                         sheet_name = key['sheet_name']   
-                        new_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        new_df = new_df.loc[new_df['recoreded'] != 'Removed']
+                        tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
+                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
                         
                         ## compare data tmp data with target data
                         if not target_df.empty:
-                            new_df = self.append_target_data(target_df, new_df)
+                            new_df = self.append_target_data(target_df, tmp_df)
                         else:
-                            continue
-                        
+                            tmp_df = tmp_df.to_dict('index')
+                            new_df = {start_rows + key: value for key,value in tmp_df.items()}
+                            
                         key.update({'full_path': target_name, 'status': status})
                         
                     except Exception as err:
@@ -245,31 +245,35 @@ class convert_2_file(validate_files):
                     sheet = workbook.get_sheet_by_name(get_sheet[0])
                     workbook.active
                     
-                    start_rows = 2
-                    while start_rows <= max(new_df):
-                        for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
-                            for idx, value in enumerate(new_df[start_rows].values(), 1):
-                                sheet.cell(row=start_rows, column=idx).value = value
-                                
-                            if start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
-                                show = f"{recoreded} Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
-                            
-                            elif start_rows in self.skip_rows and recoreded == 'Removed':
-                                show = f"Removed Rows: \033[1m({start_rows})\033[0m in Target files."
-                                sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
-                                
-                            else:
-                                show = f"No Change Rows: \033[1m({start_rows})\033[0m in Target files."
-                            new_df[start_rows].pop('recoreded')
-                            
-                            logging.info(show) 
-                        start_rows += 1
+                    for x, y in new_df.items():
+                        print(x)
+                        print(y)
                     
-                    workbook.save(target_name)
-                    status = 'successed'
+                    # while start_rows <= max(new_df):
+                    #     for recoreded in [new_df[start_rows][columns] for columns in new_df[start_rows].keys() if columns == 'recoreded']:
+                    #         for idx , values in enumerate([values for values in new_df[start_rows].values() if values != recoreded], 1):
+                    #             sheet.cell(row=start_rows, column=idx).value = values
+                                
+                    #         if start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
+                    #             show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                            
+                    #         elif start_rows in self.skip_rows and recoreded == 'Removed':
+                    #             show = f"\033[1mRemoved\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                    #             sheet.delete_rows(idx=start_rows, amount=len(self.skip_rows))
+                            
+                    #         else:
+                    #             show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                
+                    #         new_df[start_rows].pop('recoreded')
+                            
+                    #         logging.info(show) 
+                    #     start_rows += 1
                     
-                    key.update({'status': status})
-                    logging.info(f"write to target files status: {status}.")
+                    # workbook.save(target_name)
+                    # status = 'successed'
+                    
+                    # key.update({'status': status})
+                    # logging.info(f"write to target files status: {status}.")
                     
             except Exception as err:
                 key.update({'errors': err})

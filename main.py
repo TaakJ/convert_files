@@ -13,7 +13,7 @@ class start_project(convert_2_file):
         # self.setup_folder()
         
         try:
-            fix_date = datetime(2024, 2, 27)
+            fix_date = datetime(2024, 2, 29)
             date = datetime.today()
             days = (date - fix_date).days
             date = date - timedelta(days=days)
@@ -30,8 +30,6 @@ class start_project(convert_2_file):
                     logging.error(msg_err)
                 except StopIteration:
                     break
-            logging.error(f"file found count {err.n} status: successed")
-        
         finally:
             logging.info("End Project")
             
