@@ -12,17 +12,16 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import operator
-from openpyxl.utils import get_column_letter
 
 CURRENT_DIR = os.getcwd()
-LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml') 
+LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
 class FOLDER:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     TEMPLATE    = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
-    
+
     @staticmethod
     def setup_log():
         _yaml = None
@@ -32,41 +31,39 @@ class FOLDER:
                 logging.config.dictConfig(_yaml)
         else:
             raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
-        
+
     @staticmethod
     def setup_folder():
         _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_')]
         for folder in _folders:
             os.makedirs(folder, exist_ok=True)
-            
+
     @staticmethod
     def clear_folder():
         _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and not value.endswith(('raw/','export/'))]
         for folder in _folders:
             shutil.rmtree(folder)
-    
+
     @staticmethod
     def backup_folder():
         date = datetime.now().strftime('%d%m%Y')
         bk_path = join(FOLDER.EXPORT, f"BK_{date}")
-        
         if not os.path.exists(bk_path):
             os.makedirs(bk_path)
         else:
             shutil.rmtree(bk_path)
             os.makedirs(bk_path)
-        
         _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and value.endswith(('export/','log/'))]
         for folder in _folders:
             for files in os.listdir(folder):
                 if files.endswith((".xlsx",'.log')):
                     shutil.copy2(join(folder, files), bk_path)
-                    
-                    
+
+
 class validate_files(FOLDER):
     diff_rows = {}
     skip_rows = []
-    
+
     @staticmethod
     def clean_lines_excel(full_path):
         workbook = xlrd.open_workbook(full_path)
@@ -77,7 +74,7 @@ class validate_files(FOLDER):
             for row in range(0, cells.nrows):
                 key = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
                 yield key
-    
+
     @staticmethod
     def clean_lines_text(full_path):
         sheets =  str(Path(full_path).stem).upper()
@@ -92,7 +89,7 @@ class validate_files(FOLDER):
             if line_regex != []:
                 key = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
                 yield key
-    
+
     @classmethod
     def generate_excel_data(cls, full_path):
         logging.info("Generate Excel files to Dataframe..")
@@ -109,7 +106,7 @@ class validate_files(FOLDER):
             except StopIteration:
                 break
         return key
-    
+
     @classmethod
     def generate_text_data(cls, full_path):
         logging.info("Generate Text files to Dataframe..")
@@ -120,7 +117,7 @@ class validate_files(FOLDER):
             try:
                 clean_data = []
                 for sheets, data in  next(line_regex).items():
-                    # LDS-P_USERDETAIL ##
+                    # LDS-P_USERDETAIL
                     if sheets == 'LDS-P_USERDETAIL':
                         if rows == 0:
                             clean_data = " ".join(data).split(' ') # column
@@ -131,7 +128,7 @@ class validate_files(FOLDER):
                                     clean_data.extend(value)
                                 else:
                                     clean_data.append(value)
-                    ## DOCIMAGE ##  
+                    ## DOCIMAGE
                     elif sheets == 'DOCIMAGE':
                         if rows == 1:
                             clean_data = " ".join(data).split(' ') # column
@@ -142,19 +139,18 @@ class validate_files(FOLDER):
                                     clean_data.extend(value)
                                 else:
                                     clean_data.append(value)
-                    ## ADM ##     
-                    elif sheets == 'ADM': 
+                    ## ADM
+                    elif sheets == 'ADM':
                         clean_data = data
-                        
                     if sheets not in key:
                         key[sheets] = [clean_data]
                     else:
                         key[sheets].append(clean_data)
                 rows += 1
             except StopIteration:
-                break  
+                break
         return key
-    
+
     @classmethod
     def compare_data(cls, diff_df, new_df):
         logging.info('Verify Changed information..')
@@ -169,20 +165,20 @@ class validate_files(FOLDER):
         # compare data rows by rows
         diff_df['changed'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
-            
+
         start_rows = 2
         for idx in union_index:
             if idx not in cls.skip_rows:
+                
                 changed_value = {}
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'changed'] != 14:
-                        
-                        if diff_df.loc[idx, 'changed'] <= 1: 
+                        if diff_df.loc[idx, 'changed'] <= 1:
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'No_changed'
                         else:
-                            if diff[1][idx] != new[1][idx]: 
-                                changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"}) 
+                            if diff[1][idx] != new[1][idx]:
+                                changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
                             cls.diff_rows[start_rows + idx] = changed_value
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
@@ -194,15 +190,14 @@ class validate_files(FOLDER):
             else:
                 diff_df.loc[idx, 'LastUpdatedDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
-                
+
         cls.skip_rows = [start_rows + row for row in cls.skip_rows]
-        
+
         diff_df = diff_df.drop(['changed'], axis=1)
         diff_df = diff_df.to_dict('index')
         output = {start_rows + row: diff_df[row] for row in diff_df}
-        
         return output
-    
+
     @classmethod
     def append_target_data(cls, target_df, tmp_df):
         logging.info("Append Target Data..")
@@ -215,18 +210,18 @@ class validate_files(FOLDER):
         diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
         diff_date = diff_date.to_dict('index')
         max_rows = max(diff_date, default=0)
-        
+
         for key, value in new_df.items():
             if key in cls.diff_rows or key in cls.skip_rows:
                 value['diff_rows'] = key
             max_rows += 1
             diff_date[max_rows] = value
-            
+
         ## set ordered rows
         output = {}
         ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
         sorted_rows = iter(ordered)
-        
+
         idx = 0
         start_rows = 2
         while True:
@@ -241,21 +236,8 @@ class validate_files(FOLDER):
                     elif rows['diff_rows'] in cls.skip_rows:
                         cls.skip_rows[idx] = start_rows
                         idx += 1
-                    rows.pop('diff_rows') 
+                    rows.pop('diff_rows')
             except StopIteration:
                 break
             start_rows += 1
         return output
-    
-    def remove_row(self, sheet, selected): # Deletes row
-        column_max = sheet.max_column
-        row_max = sheet.max_row
-        for i in range(row_max, selected-1, -1):
-            for j in range(1, column_max+1):
-                if not sheet.cell(row=i+1, column=j).value:
-                    sheet[get_column_letter(j)+str(i)] = None
-                else:
-                    shift_here = sheet.cell(row=i+1, column=j).value
-                    sheet[get_column_letter(j)+str(i)] = str(shift_here)
-                if i == row_max-1:
-                    sheet[get_column_letter(j)+str(i+1)] = None
