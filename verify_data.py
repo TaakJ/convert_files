@@ -250,7 +250,6 @@ class validate_files(FOLDER):
     def remove_row(self, sheet, selected): # Deletes row
         column_max = sheet.max_column
         row_max = sheet.max_row
-        
         for i in range(row_max, selected-1, -1):
             for j in range(1, column_max+1):
                 if not sheet.cell(row=i+1, column=j).value:
