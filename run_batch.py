@@ -239,7 +239,6 @@ class convert_2_file(validate_files):
                                     continue
                                 sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]
                                 continue
-                            print(show)
                             logging.info(show)
                         start_rows += 1
                         
