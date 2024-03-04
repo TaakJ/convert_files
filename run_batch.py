@@ -31,7 +31,6 @@ class convert_2_file(validate_files):
     
     def check_success_files(call_method):
         def fn_success_files(self):
-            
             logging.info('Check Success files..')
             success_file = []
             for key in call_method(self):
@@ -55,7 +54,6 @@ class convert_2_file(validate_files):
     
     @check_success_files
     def get_list_files(self):
-        
         log = [] 
         for file in self.TEMPLATE:
             source = Path(file).stem
@@ -89,10 +87,8 @@ class convert_2_file(validate_files):
     
     @sample
     def get_data_files(self):
-        
         logging.info('Get Data from files..')
         status = 'failed'
-        
         for key in self.logging:
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
@@ -116,7 +112,6 @@ class convert_2_file(validate_files):
         return self.logging
     
     def write_data_to_tmp_file(self):
-        
         logging.info("Write Data to Tmp files..")
         tmp_name = f"{self.LOG}DD_{self.date.strftime('%d%m%Y')}.xlsx"
         workbook = openpyxl.Workbook()
@@ -161,7 +156,6 @@ class convert_2_file(validate_files):
                                     show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
                                 else:
                                     show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
-                                    
                                 logging.info(show)
                             start_rows += 1
                         
@@ -235,7 +229,7 @@ class convert_2_file(validate_files):
                                     show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
                                 elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
                                     show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
-                                    self.remove_row(sheet=sheet, row=start_rows)
+                                    self.remove_row(sheet=sheet, selected=start_rows)
                                 else:
                                     show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
                             else:
@@ -243,7 +237,6 @@ class convert_2_file(validate_files):
                                     continue
                                 sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]   
                                 continue
-                                
                             logging.info(show)
                         start_rows += 1
                             

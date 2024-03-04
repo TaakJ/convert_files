@@ -64,7 +64,6 @@ class FOLDER:
                     
                     
 class validate_files(FOLDER):
-    
     diff_rows = {}
     skip_rows = []
     
