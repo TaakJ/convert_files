@@ -6,7 +6,6 @@ import shutil
 import yaml
 import logging.config
 import chardet
-from datetime import datetime
 from io import StringIO
 from pathlib import Path
 import pandas as pd
@@ -19,6 +18,7 @@ LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 class FOLDER:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
+    TMP         = join(CURRENT_DIR, "tmp/export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     TEMPLATE    = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
 
@@ -44,20 +44,20 @@ class FOLDER:
         for folder in _folders:
             shutil.rmtree(folder)
 
-    @staticmethod
-    def backup_folder():
-        date = datetime.now().strftime('%d%m%Y')
-        bk_path = join(FOLDER.EXPORT, f"BK_{date}")
-        if not os.path.exists(bk_path):
-            os.makedirs(bk_path)
-        else:
-            shutil.rmtree(bk_path)
-            os.makedirs(bk_path)
-        _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and value.endswith(('export/','log/'))]
-        for folder in _folders:
-            for files in os.listdir(folder):
-                if files.endswith((".xlsx",'.log')):
-                    shutil.copy2(join(folder, files), bk_path)
+    # @staticmethod
+    # def backup_folder():
+    #     date = datetime.now().strftime('%d%m%Y')
+    #     bk_path = join(FOLDER.EXPORT, f"BK_{date}")
+    #     if not os.path.exists(bk_path):
+    #         os.makedirs(bk_path)
+    #     else:
+    #         shutil.rmtree(bk_path)
+    #         os.makedirs(bk_path)
+    #     _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and value.endswith(('export/','log/'))]
+    #     for folder in _folders:
+    #         for files in os.listdir(folder):
+    #             if files.endswith((".xlsx",'.log')):
+    #                 shutil.copy2(join(folder, files), bk_path)
 
 
 class validate_files(FOLDER):
@@ -66,9 +66,11 @@ class validate_files(FOLDER):
 
     @staticmethod
     def clean_lines_excel(full_path):
+        
         workbook = xlrd.open_workbook(full_path)
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
         key = {}
+        
         for sheets in sheet_list:
             cells = workbook.sheet_by_name(sheets)
             for row in range(0, cells.nrows):
@@ -77,12 +79,14 @@ class validate_files(FOLDER):
 
     @staticmethod
     def clean_lines_text(full_path):
+        
         sheets =  str(Path(full_path).stem).upper()
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
         files.seek(0)
         decode_data = StringIO(files.read().decode(encoded))
         key = {}
+        
         for line in decode_data:
             regex = re.compile(r'\w+.*')
             line_regex = regex.findall(line)
@@ -92,9 +96,12 @@ class validate_files(FOLDER):
 
     @classmethod
     def generate_excel_data(cls, full_path):
+        
         logging.info("Generate Excel files to Dataframe..")
-        key = {}
+        
         clean_data = iter(cls.clean_lines_excel(full_path))
+        key = {}
+        
         while True:
             try:
                 for sheets, data in next(clean_data).items():
@@ -105,14 +112,18 @@ class validate_files(FOLDER):
                             key[sheets].append(data)
             except StopIteration:
                 break
+            
         return key
 
     @classmethod
     def generate_text_data(cls, full_path):
+        
         logging.info("Generate Text files to Dataframe..")
-        key = {}
-        rows = 0
+        
         line_regex = iter(cls.clean_lines_text(full_path))
+        rows = 0
+        key = {}
+        
         while True:
             try:
                 clean_data = []
@@ -149,19 +160,26 @@ class validate_files(FOLDER):
                 rows += 1
             except StopIteration:
                 break
+            
         return key
 
     @classmethod
-    def compare_data(cls, diff_df, new_df):
+    def validation_data(cls, diff_df, new_df):
+        
         logging.info('Verify Changed information..')
+        
         if len(diff_df.index) > len(new_df.index):
             cls.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
+            
         ## reset index data
         union_index = np.union1d(diff_df.index, new_df.index)
+        
         ## target / tmp data
         diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
+        
         ## new data
         new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
+        
         # compare data rows by rows
         diff_df['changed'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
@@ -188,7 +206,6 @@ class validate_files(FOLDER):
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
-                diff_df.loc[idx, 'LastUpdatedDate'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
 
         cls.skip_rows = [start_rows + row for row in cls.skip_rows]
@@ -196,48 +213,61 @@ class validate_files(FOLDER):
         diff_df = diff_df.drop(['changed'], axis=1)
         diff_df = diff_df.to_dict('index')
         output = {start_rows + row: diff_df[row] for row in diff_df}
+        
         return output
-
-    @classmethod
-    def append_target_data(cls, target_df, tmp_df):
+    
+    
+    def append_target_data(self, target_df, tmp_df):
+        
+        print(target_df)
+        print(tmp_df)
+        
         logging.info("Append Target Data..")
+        
         ## unique date
         date = tmp_df['CreateDate'].unique()
+        
         ## compare data new data with target data (mask date)
-        mark_date = target_df[target_df['CreateDate'].isin(date)].reset_index(drop=True)
-        new_df = cls.compare_data(mark_date, tmp_df)
+        # validate_data = mark_date(date=date, use='use')
+        # new_df = cls.validation_data(validate_data, tmp_df)
+        
         ## unique date other (not mask date)
-        diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
-        diff_date = diff_date.to_dict('index')
-        max_rows = max(diff_date, default=0)
-
-        for key, value in new_df.items():
-            if key in cls.diff_rows or key in cls.skip_rows:
-                value['diff_rows'] = key
-            max_rows += 1
-            diff_date[max_rows] = value
-
+        # merge_df = mark_date(date=date)
+        
+        # diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
+        # diff_date = diff_date.to_dict('index')
+        # max_rows = max(diff_date, default=0)
+        
+        # for key, value in new_df.items():
+        #     if key in cls.diff_rows or key in cls.skip_rows:
+        #         value['diff_rows'] = key
+        #     max_rows += 1
+        #     diff_date[max_rows] = value
+        
+        
+        
         ## set ordered rows
-        output = {}
-        ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
-        sorted_rows = iter(ordered)
-
-        idx = 0
-        start_rows = 2
-        while True:
-            try:
-                rows = next(sorted_rows)
-                output.update({start_rows: rows})
-                if rows.get('diff_rows'):
-                    ## diff rows
-                    if rows['diff_rows'] in cls.diff_rows:
-                        cls.diff_rows[start_rows] = cls.diff_rows.pop(rows['diff_rows'])
-                    ## skip rows
-                    elif rows['diff_rows'] in cls.skip_rows:
-                        cls.skip_rows[idx] = start_rows
-                        idx += 1
-                    rows.pop('diff_rows')
-            except StopIteration:
-                break
-            start_rows += 1
-        return output
+        # output = {}
+        # ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
+        # sorted_rows = iter(ordered)
+        
+        # print(sorted_rows)
+        # idx = 0
+        # start_rows = 2
+        # while True:
+        #     try:
+        #         rows = next(sorted_rows)
+        #         output.update({start_rows: rows})
+        #         if rows.get('diff_rows'):
+        #             ## diff rows
+        #             if rows['diff_rows'] in cls.diff_rows:
+        #                 cls.diff_rows[start_rows] = cls.diff_rows.pop(rows['diff_rows'])
+        #             ## skip rows
+        #             elif rows['diff_rows'] in cls.skip_rows:
+        #                 cls.skip_rows[idx] = start_rows
+        #                 idx += 1
+        #             rows.pop('diff_rows')
+        #     except StopIteration:
+        #         break
+        #     start_rows += 1
+        return 'output'
