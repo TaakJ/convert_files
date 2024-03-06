@@ -61,13 +61,17 @@ class FOLDER:
 
 
 class validate_files(FOLDER):
-    diff_rows = {}
-    skip_rows = []
-                
+
+    def __init__(self):
+        super().__init__()
+
+        self.diff_rows = {}
+        self.skip_rows = []
+
     def clean_lines_excel(func):
         def wrapper_clean_lines(*args, **kwargs):
             clean_lines = iter(func(*args, **kwargs))
-            
+
             clean_data = {}
             while True:
                 try:
@@ -79,18 +83,17 @@ class validate_files(FOLDER):
                                 clean_data[sheets].append(data)
                 except StopIteration:
                     break
-                
             return clean_data
         return wrapper_clean_lines
-                
+
     @clean_lines_excel
     def generate_excel_data(self, full_path):
-        
+
         logging.info("Cleansing Data in Excel files to Dataframe..")
-        
+
         workbook = xlrd.open_workbook(full_path);
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
-        
+
         clean_data = {}
         for sheets in sheet_list:
             cells = workbook.sheet_by_name(sheets)
@@ -101,7 +104,7 @@ class validate_files(FOLDER):
     def clean_lines_text(func):
         def wrapper_clean_lines(*args, **kwargs):
             clean_lines = iter(func(*args, **kwargs))
-            
+
             clean_data = {}
             rows = 0
             while True:
@@ -133,30 +136,29 @@ class validate_files(FOLDER):
                         ## ADM
                         elif sheets == 'ADM':
                             lines = data
-                                        
+
                         if sheets not in clean_data:
                             clean_data[sheets] = [lines]
                         else:
                             clean_data[sheets].append(lines)
-                            
+
                     rows += 1
                 except StopIteration:
                     break
-                
             return clean_data
         return wrapper_clean_lines
-        
+
     @clean_lines_text
     def generate_text_data(self, full_path):
-        
+
         logging.info("Cleansing Data in Text files to Dataframe..")
-        
+
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
         files.seek(0)
         decode_data = StringIO(files.read().decode(encoded))
         sheets =  str(Path(full_path).stem).upper()
-        
+
         clean_data = {}
         for line in decode_data:
             regex = re.compile(r'\w+.*')
@@ -165,110 +167,90 @@ class validate_files(FOLDER):
                 clean_data = {sheets: re.sub(r'\W\s+','||',"".join(find_lines).strip()).split('||')}
                 yield clean_data
 
-    @classmethod
-    def validation_data(cls, diff_df, new_df):
-        
+    def validation_data(self, diff_df, new_df):
+
         logging.info('Verify Changed information..')
-        
+
         if len(diff_df.index) > len(new_df.index):
-            cls.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
-            
+            self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
+
         ## reset index data
         union_index = np.union1d(diff_df.index, new_df.index)
-        
         ## target / tmp data
         diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
-        
         ## new data
         new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
-        
         # compare data rows by rows
         diff_df['changed'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
 
         start_rows = 2
         for idx in union_index:
-            if idx not in cls.skip_rows:
-                
+            if idx not in self.skip_rows:
+
                 changed_value = {}
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'changed'] != 14:
                         if diff_df.loc[idx, 'changed'] <= 1:
+                            ## No_changed rows
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'No_changed'
                         else:
                             if diff[1][idx] != new[1][idx]:
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-                            cls.diff_rows[start_rows + idx] = changed_value
+                            self.diff_rows[start_rows + idx] = changed_value
+                            ## Updated rows
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
                     else:
                         changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-                        cls.diff_rows[start_rows + idx] = changed_value
+                        self.diff_rows[start_rows + idx] = changed_value
+                        ## Inserted rows
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
             else:
+                ## Removed rows
                 diff_df.loc[idx, 'recoreded'] = 'Removed'
 
-        cls.skip_rows = [start_rows + row for row in cls.skip_rows]
-
+        self.skip_rows = [start_rows + row for row in self.skip_rows]
         diff_df = diff_df.drop(['changed'], axis=1)
         diff_df = diff_df.to_dict('index')
-        output = {start_rows + row: diff_df[row] for row in diff_df}
-        
-        return output
-    
-    def append_target_data(self, target_df, tmp_df):
-        
-        print(target_df)
-        print(tmp_df)
-        
+
+        new_data = {start_rows + row: diff_df[row] for row in diff_df}
+        return new_data
+
+    def append_target_data(self, select_date, target_df, tmp_df):
+
         logging.info("Append Target Data..")
+        ## unique_date
+        unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
+
+        ## other_date
+        other_date = target_df[~target_df['CreateDate'].isin(select_date)].iloc[:, :-1].to_dict('index')
+        max_rows = max(other_date)
+
+        ## compare data target / tmp
+        compare_data = self.validation_data(unique_date, tmp_df)
+
+        ## add value to other_date
+        other_date = other_date | {max_rows + key:  {**values, **{'diff_rows': key}} \
+            if key in self.diff_rows or key in self.skip_rows \
+                else values for key, values in compare_data.items()}
+
+        ## sorted value
+        start_row = 2
+        new_data = {start_row + idx :value for idx, value  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
         
-        ## unique date
-        date = tmp_df['CreateDate'].unique()
-        
-        ## compare data new data with target data (mask date)
-        # validate_data = mark_date(date=date, use='use')
-        # new_df = cls.validation_data(validate_data, tmp_df)
-        
-        ## unique date other (not mask date)
-        # merge_df = mark_date(date=date)
-        
-        # diff_date = target_df[~target_df['CreateDate'].isin(date)].iloc[:,:-1]
-        # diff_date = diff_date.to_dict('index')
-        # max_rows = max(diff_date, default=0)
-        
-        # for key, value in new_df.items():
-        #     if key in cls.diff_rows or key in cls.skip_rows:
-        #         value['diff_rows'] = key
-        #     max_rows += 1
-        #     diff_date[max_rows] = value
-        
-        
-        
-        ## set ordered rows
-        # output = {}
-        # ordered = sorted([diff_date[value] for value in diff_date], key=operator.itemgetter('CreateDate'))
-        # sorted_rows = iter(ordered)
-        
-        # print(sorted_rows)
-        # idx = 0
-        # start_rows = 2
-        # while True:
-        #     try:
-        #         rows = next(sorted_rows)
-        #         output.update({start_rows: rows})
-        #         if rows.get('diff_rows'):
-        #             ## diff rows
-        #             if rows['diff_rows'] in cls.diff_rows:
-        #                 cls.diff_rows[start_rows] = cls.diff_rows.pop(rows['diff_rows'])
-        #             ## skip rows
-        #             elif rows['diff_rows'] in cls.skip_rows:
-        #                 cls.skip_rows[idx] = start_rows
-        #                 idx += 1
-        #             rows.pop('diff_rows')
-        #     except StopIteration:
-        #         break
-        #     start_rows += 1
-        return 'output'
+        idx = 0
+        for key, value in new_data.items():
+            if value.get('diff_rows'):
+                ## diff rows
+                if value['diff_rows'] in self.diff_rows:
+                    self.diff_rows[key] = self.diff_rows.pop(value['diff_rows'])
+                ## skip rows
+                elif value['diff_rows'] in self.skip_rows:
+                    self.skip_rows[idx] = key
+                    idx += 1
+                value.pop('diff_rows')
+                
+        return new_data

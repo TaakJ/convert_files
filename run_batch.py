@@ -20,8 +20,8 @@ class convert_2_file(validate_files):
         self.__log = []
         self.get_list_files()
         self.get_data_files()
-        # self.write_data_to_tmp_file()
-        # self.write_data_to_target_file()
+        self.write_data_to_tmp_file()
+        self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -59,7 +59,6 @@ class convert_2_file(validate_files):
 
     @check_success_files
     def get_list_files(self):
-
         if self.__log == []:
             args = []
             for file in self.TEMPLATE:
@@ -93,17 +92,6 @@ class convert_2_file(validate_files):
 
         return wrapper_mock_data
     
-    
-    def sample(func):
-        def wrapper_mock_data(*args):
-            
-            for x in func(*args):
-                print(x['data'])
-            
-            return func(*args)
-        return wrapper_mock_data
-    
-    # @sample
     @mock_data
     def get_data_files(self):
 
@@ -114,6 +102,7 @@ class convert_2_file(validate_files):
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
             key.update({'status': status})
+            
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel files: '{full_path}'.")
@@ -240,10 +229,12 @@ class convert_2_file(validate_files):
 
                         ## compare data tmp data with target data
                         if not target_df.empty:
-                            new_df = self.append_target_data(target_df, tmp_df)
+                            select_date = tmp_df['CreateDate'].unique()
+                            new_df = self.append_target_data(select_date, target_df, tmp_df)
                         else:
                             tmp_df = tmp_df.to_dict('index')
                             new_df = {start_rows + key: value for key,value in tmp_df.items()}
+                            
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
@@ -255,27 +246,27 @@ class convert_2_file(validate_files):
                     sheet = workbook.get_sheet_by_name(get_sheet[0])
                     workbook.active
 
-                    # while start_rows <= max(new_df):
-                    #     for idx, columns in enumerate(new_df[start_rows].keys(), 1):
-                    #         if columns == 'recoreded':
-                    #             if start_rows in self.diff_rows.keys() and new_df[start_rows][columns] in ['Updated', 'Inserted']:
-                    #                 show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
-                    #             elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
-                    #                 show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
-                    #                 sheet.delete_rows(start_rows,sheet.max_row)
-                    #             else:
-                    #                 show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
-                    #         else:
-                    #             if start_rows in self.skip_rows:
-                    #                 continue
-                    #             sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]
-                    #             continue
-                    #         logging.info(show)
-                    #     start_rows += 1
+                    while start_rows <= max(new_df):
+                        for idx, columns in enumerate(new_df[start_rows].keys(), 1):
+                            if columns == 'recoreded':
+                                if start_rows in self.diff_rows.keys() and new_df[start_rows][columns] in ['Updated', 'Inserted']:
+                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                                elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
+                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                    sheet.delete_rows(start_rows,sheet.max_row)
+                                else:
+                                    show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                            else:
+                                if start_rows in self.skip_rows:
+                                    continue
+                                sheet.cell(row=start_rows, column=idx).value = new_df[start_rows][columns]
+                                continue
+                            logging.info(show)
+                        start_rows += 1
 
-                    # remove_row_empty(sheet)
-                    # workbook.save(target_name)
-                    # status = 'successed'
+                    remove_row_empty(sheet)
+                    workbook.save(target_name)
+                    status = 'successed'
 
                     key.update({'status': status})
                     logging.info(f"write to target files status: {status}.")
