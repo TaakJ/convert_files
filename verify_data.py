@@ -63,105 +63,107 @@ class FOLDER:
 class validate_files(FOLDER):
     diff_rows = {}
     skip_rows = []
-
-    @staticmethod
-    def clean_lines_excel(full_path):
+                
+    def clean_lines_excel(func):
+        def wrapper_clean_lines(*args, **kwargs):
+            clean_lines = iter(func(*args, **kwargs))
+            
+            clean_data = {}
+            while True:
+                try:
+                    for sheets, data in next(clean_lines).items():
+                        if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
+                            if sheets not in clean_data:
+                                clean_data[sheets] = [data]
+                            else:
+                                clean_data[sheets].append(data)
+                except StopIteration:
+                    break
+                
+            return clean_data
+        return wrapper_clean_lines
+                
+    @clean_lines_excel
+    def generate_excel_data(self, full_path):
         
-        workbook = xlrd.open_workbook(full_path)
+        logging.info("Cleansing Data in Excel files to Dataframe..")
+        
+        workbook = xlrd.open_workbook(full_path);
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
-        key = {}
         
+        clean_data = {}
         for sheets in sheet_list:
             cells = workbook.sheet_by_name(sheets)
             for row in range(0, cells.nrows):
-                key = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
-                yield key
+                clean_data = {sheets: [cells.cell(row, col).value for col in range(cells.ncols)]}
+                yield clean_data
 
-    @staticmethod
-    def clean_lines_text(full_path):
+    def clean_lines_text(func):
+        def wrapper_clean_lines(*args, **kwargs):
+            clean_lines = iter(func(*args, **kwargs))
+            
+            clean_data = {}
+            rows = 0
+            while True:
+                try:
+                    lines = []
+                    for sheets, data in  next(clean_lines).items():
+                        # LDS-P_USERDETAIL
+                        if sheets == 'LDS-P_USERDETAIL':
+                            if rows == 0:
+                                lines = " ".join(data).split(' ') # column
+                            else:
+                                for idx, value in enumerate(data): # fix value
+                                    if idx == 0:
+                                        value = re.sub(r'\s+',',', value).split(',')
+                                        lines.extend(value)
+                                    else:
+                                        lines.append(value)
+                        ## DOCIMAGE
+                        elif sheets == 'DOCIMAGE':
+                            if rows == 1:
+                                lines = " ".join(data).split(' ') # column
+                            elif rows > 1:
+                                for idx, value in enumerate(data): # fix value
+                                    if idx == 3:
+                                        value = re.sub(r'\s+',',', value).split(',')
+                                        lines.extend(value)
+                                    else:
+                                        lines.append(value)
+                        ## ADM
+                        elif sheets == 'ADM':
+                            lines = data
+                                        
+                        if sheets not in clean_data:
+                            clean_data[sheets] = [lines]
+                        else:
+                            clean_data[sheets].append(lines)
+                            
+                    rows += 1
+                except StopIteration:
+                    break
+                
+            return clean_data
+        return wrapper_clean_lines
         
-        sheets =  str(Path(full_path).stem).upper()
+    @clean_lines_text
+    def generate_text_data(self, full_path):
+        
+        logging.info("Cleansing Data in Text files to Dataframe..")
+        
         files = open(full_path, 'rb')
         encoded = chardet.detect(files.read())['encoding']
         files.seek(0)
         decode_data = StringIO(files.read().decode(encoded))
-        key = {}
+        sheets =  str(Path(full_path).stem).upper()
         
+        clean_data = {}
         for line in decode_data:
             regex = re.compile(r'\w+.*')
-            line_regex = regex.findall(line)
-            if line_regex != []:
-                key = {sheets: re.sub(r'\W\s+','||',"".join(line_regex).strip()).split('||')}
-                yield key
-
-    @classmethod
-    def generate_excel_data(cls, full_path):
-        
-        logging.info("Generate Excel files to Dataframe..")
-        
-        clean_data = iter(cls.clean_lines_excel(full_path))
-        key = {}
-        
-        while True:
-            try:
-                for sheets, data in next(clean_data).items():
-                    if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
-                        if sheets not in key:
-                            key[sheets] = [data]
-                        else:
-                            key[sheets].append(data)
-            except StopIteration:
-                break
-            
-        return key
-
-    @classmethod
-    def generate_text_data(cls, full_path):
-        
-        logging.info("Generate Text files to Dataframe..")
-        
-        line_regex = iter(cls.clean_lines_text(full_path))
-        rows = 0
-        key = {}
-        
-        while True:
-            try:
-                clean_data = []
-                for sheets, data in  next(line_regex).items():
-                    # LDS-P_USERDETAIL
-                    if sheets == 'LDS-P_USERDETAIL':
-                        if rows == 0:
-                            clean_data = " ".join(data).split(' ') # column
-                        else:
-                            for idx, value in enumerate(data): # fix value
-                                if idx == 0:
-                                    value = re.sub(r'\s+',',', value).split(',')
-                                    clean_data.extend(value)
-                                else:
-                                    clean_data.append(value)
-                    ## DOCIMAGE
-                    elif sheets == 'DOCIMAGE':
-                        if rows == 1:
-                            clean_data = " ".join(data).split(' ') # column
-                        elif rows > 1:
-                            for idx, value in enumerate(data): # fix value
-                                if idx == 3:
-                                    value = re.sub(r'\s+',',', value).split(',')
-                                    clean_data.extend(value)
-                                else:
-                                    clean_data.append(value)
-                    ## ADM
-                    elif sheets == 'ADM':
-                        clean_data = data
-                    if sheets not in key:
-                        key[sheets] = [clean_data]
-                    else:
-                        key[sheets].append(clean_data)
-                rows += 1
-            except StopIteration:
-                break
-            
-        return key
+            find_lines = regex.findall(line)
+            if find_lines != []:
+                clean_data = {sheets: re.sub(r'\W\s+','||',"".join(find_lines).strip()).split('||')}
+                yield clean_data
 
     @classmethod
     def validation_data(cls, diff_df, new_df):
@@ -215,7 +217,6 @@ class validate_files(FOLDER):
         output = {start_rows + row: diff_df[row] for row in diff_df}
         
         return output
-    
     
     def append_target_data(self, target_df, tmp_df):
         

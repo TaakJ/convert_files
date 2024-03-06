@@ -20,8 +20,8 @@ class convert_2_file(validate_files):
         self.__log = []
         self.get_list_files()
         self.get_data_files()
-        self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.write_data_to_tmp_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -69,7 +69,7 @@ class convert_2_file(validate_files):
 
         return self.__log
 
-    def sample(func):
+    def mock_data(func):
 
         logging.info("Mock Data")
 
@@ -92,8 +92,19 @@ class convert_2_file(validate_files):
             func(*args).append({'source': 'Target_file', 'data': df.to_dict('list')})
 
         return wrapper_mock_data
-
-    @sample
+    
+    
+    def sample(func):
+        def wrapper_mock_data(*args):
+            
+            for x in func(*args):
+                print(x['data'])
+            
+            return func(*args)
+        return wrapper_mock_data
+    
+    # @sample
+    @mock_data
     def get_data_files(self):
 
         logging.info('Get Data from files..')
@@ -103,17 +114,16 @@ class convert_2_file(validate_files):
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
             key.update({'status': status})
-
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel files: '{full_path}'.")
-                    list_data = self.generate_excel_data(full_path)
+                    clean_data = self.generate_excel_data(full_path=full_path)
                 else:
                     logging.info(f"Read Text files: '{full_path}'.")
-                    list_data = self.generate_text_data(full_path)
+                    clean_data = self.generate_text_data(full_path=full_path)
                 status = 'successed'
-                key.update({'data': list_data, 'status': status})
-
+                key.update({'data': clean_data, 'status': status})
+                
             except Exception as err:
                 key.update({'errors': err})
 
