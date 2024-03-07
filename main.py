@@ -13,12 +13,12 @@ class start_project(convert_2_file):
         # self.setup_folder()
         
         try:
-            fix_date = datetime(2024, 2, 26)
             date = datetime.today()
-            days = (date - fix_date).days
-            date = date - timedelta(days=days)
-            
-            logging.info("Start Project")
+            # fix_date = datetime(2024, 2, 25)
+            # days = (date - fix_date).days
+            # date = date - timedelta(days=days)
+            # logging.info('\n')
+            logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
             super().__init__(date=date)
             
         except CustomException as err:  
@@ -31,7 +31,8 @@ class start_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            logging.info("End Project")
+            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n==============================================================================================================================================================\n")
+            
             
 if __name__ == "__main__":
     start_project()

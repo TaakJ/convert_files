@@ -272,7 +272,7 @@ class convert_2_file(validate_files):
                     status = 'successed'
 
                     key.update({'status': status})
-                    logging.info(f"write to target files status: {status}.")
+                    logging.info(f"Write to Target Files status: {status}.")
 
             except Exception as err:
                 key.update({'errors': err})

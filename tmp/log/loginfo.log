@@ -1,0 +1,162 @@
+convert_2_file::2024/03/07 17:18:09.787 | MainProcess | INFO | main | __init__::21 | 30628 >>> Start Run Batch Date: 2024-02-25
+convert_2_file::2024/03/07 17:18:09.788 | MainProcess | INFO | run_batch | wrapper_success_files::38 | 30628 >>> Check Success files..
+convert_2_file::2024/03/07 17:18:09.789 | MainProcess | INFO | run_batch | wrapper_success_files::56 | 30628 >>> File found count 9 status: successed.
+convert_2_file::2024/03/07 17:18:09.790 | MainProcess | INFO | run_batch | get_data_files::99 | 30628 >>> Get Data from files..
+convert_2_file::2024/03/07 17:18:09.790 | MainProcess | INFO | run_batch | get_data_files::112 | 30628 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+convert_2_file::2024/03/07 17:18:09.791 | MainProcess | INFO | verify_data | generate_text_data::103 | 30628 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.792 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+convert_2_file::2024/03/07 17:18:09.792 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.796 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+convert_2_file::2024/03/07 17:18:09.796 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.799 | MainProcess | INFO | run_batch | get_data_files::112 | 30628 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+convert_2_file::2024/03/07 17:18:09.799 | MainProcess | INFO | verify_data | generate_text_data::103 | 30628 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.800 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+convert_2_file::2024/03/07 17:18:09.800 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.802 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+convert_2_file::2024/03/07 17:18:09.802 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.804 | MainProcess | INFO | run_batch | get_data_files::112 | 30628 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+convert_2_file::2024/03/07 17:18:09.804 | MainProcess | INFO | verify_data | generate_text_data::103 | 30628 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.805 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+convert_2_file::2024/03/07 17:18:09.805 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.808 | MainProcess | INFO | run_batch | get_data_files::109 | 30628 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+convert_2_file::2024/03/07 17:18:09.808 | MainProcess | INFO | verify_data | generate_excel_data::41 | 30628 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:09.812 | MainProcess | INFO | run_batch | write_data_to_tmp_file::127 | 30628 >>> Write Data to Tmp files..
+convert_2_file::2024/03/07 17:18:09.814 | MainProcess | INFO | run_batch | write_data_to_tmp_file::189 | 30628 >>> Inserted Rows: (1) in Tmp files.
+convert_2_file::2024/03/07 17:18:09.815 | MainProcess | INFO | run_batch | write_data_to_tmp_file::189 | 30628 >>> Inserted Rows: (2) in Tmp files.
+convert_2_file::2024/03/07 17:18:09.823 | MainProcess | INFO | run_batch | write_data_to_tmp_file::197 | 30628 >>> Write to Tmp files status: successed.
+convert_2_file::2024/03/07 17:18:09.823 | MainProcess | INFO | run_batch | write_data_to_target_file::207 | 30628 >>> Write Data to Target files..
+convert_2_file::2024/03/07 17:18:09.835 | MainProcess | INFO | verify_data | append_target_data::173 | 30628 >>> Append Target Data..
+convert_2_file::2024/03/07 17:18:09.837 | MainProcess | INFO | verify_data | validation_data::121 | 30628 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:18:09.847 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 30628 >>> No Change Rows: (2) in Target files.
+convert_2_file::2024/03/07 17:18:09.856 | MainProcess | INFO | run_batch | write_data_to_target_file::275 | 30628 >>> Write to Target Files status: successed.
+convert_2_file::2024/03/07 17:18:09.856 | MainProcess | INFO | main | __init__::34 | 30628 >>> Stop Batch Date 2024-02-25
+==============================================================================================================================================================
+
+convert_2_file::2024/03/07 17:18:45.452 | MainProcess | INFO | main | __init__::21 | 15532 >>> Start Run Batch Date: 2024-03-07
+convert_2_file::2024/03/07 17:18:45.452 | MainProcess | INFO | run_batch | wrapper_success_files::38 | 15532 >>> Check Success files..
+convert_2_file::2024/03/07 17:18:45.453 | MainProcess | INFO | run_batch | wrapper_success_files::56 | 15532 >>> File found count 9 status: successed.
+convert_2_file::2024/03/07 17:18:45.454 | MainProcess | INFO | run_batch | get_data_files::99 | 15532 >>> Get Data from files..
+convert_2_file::2024/03/07 17:18:45.455 | MainProcess | INFO | run_batch | get_data_files::112 | 15532 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+convert_2_file::2024/03/07 17:18:45.455 | MainProcess | INFO | verify_data | generate_text_data::103 | 15532 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.456 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+convert_2_file::2024/03/07 17:18:45.457 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.460 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+convert_2_file::2024/03/07 17:18:45.461 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.463 | MainProcess | INFO | run_batch | get_data_files::112 | 15532 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+convert_2_file::2024/03/07 17:18:45.463 | MainProcess | INFO | verify_data | generate_text_data::103 | 15532 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.464 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+convert_2_file::2024/03/07 17:18:45.464 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.466 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+convert_2_file::2024/03/07 17:18:45.466 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.468 | MainProcess | INFO | run_batch | get_data_files::112 | 15532 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+convert_2_file::2024/03/07 17:18:45.468 | MainProcess | INFO | verify_data | generate_text_data::103 | 15532 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.468 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+convert_2_file::2024/03/07 17:18:45.468 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.471 | MainProcess | INFO | run_batch | get_data_files::109 | 15532 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+convert_2_file::2024/03/07 17:18:45.471 | MainProcess | INFO | verify_data | generate_excel_data::41 | 15532 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:18:45.475 | MainProcess | INFO | run_batch | write_data_to_tmp_file::127 | 15532 >>> Write Data to Tmp files..
+convert_2_file::2024/03/07 17:18:45.477 | MainProcess | INFO | run_batch | write_data_to_tmp_file::189 | 15532 >>> Inserted Rows: (1) in Tmp files.
+convert_2_file::2024/03/07 17:18:45.478 | MainProcess | INFO | run_batch | write_data_to_tmp_file::189 | 15532 >>> Inserted Rows: (2) in Tmp files.
+convert_2_file::2024/03/07 17:18:45.487 | MainProcess | INFO | run_batch | write_data_to_tmp_file::197 | 15532 >>> Write to Tmp files status: successed.
+convert_2_file::2024/03/07 17:18:45.487 | MainProcess | INFO | run_batch | write_data_to_target_file::207 | 15532 >>> Write Data to Target files..
+convert_2_file::2024/03/07 17:18:45.498 | MainProcess | INFO | verify_data | append_target_data::173 | 15532 >>> Append Target Data..
+convert_2_file::2024/03/07 17:18:45.500 | MainProcess | INFO | verify_data | validation_data::121 | 15532 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:18:45.511 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 15532 >>> No Change Rows: (5) in Target files.
+convert_2_file::2024/03/07 17:18:45.520 | MainProcess | INFO | run_batch | write_data_to_target_file::275 | 15532 >>> Write to Target Files status: successed.
+convert_2_file::2024/03/07 17:18:45.520 | MainProcess | INFO | main | __init__::34 | 15532 >>> Stop Batch Date 2024-03-07
+==============================================================================================================================================================
+
+convert_2_file::2024/03/07 17:19:55.232 | MainProcess | INFO | main | __init__::21 | 28492 >>> Start Run Batch Date: 2024-03-07
+convert_2_file::2024/03/07 17:19:55.232 | MainProcess | INFO | run_batch | wrapper_success_files::38 | 28492 >>> Check Success files..
+convert_2_file::2024/03/07 17:19:55.233 | MainProcess | INFO | run_batch | wrapper_success_files::56 | 28492 >>> File found count 9 status: successed.
+convert_2_file::2024/03/07 17:19:55.234 | MainProcess | INFO | run_batch | get_data_files::99 | 28492 >>> Get Data from files..
+convert_2_file::2024/03/07 17:19:55.234 | MainProcess | INFO | run_batch | get_data_files::112 | 28492 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+convert_2_file::2024/03/07 17:19:55.234 | MainProcess | INFO | verify_data | generate_text_data::103 | 28492 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.236 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+convert_2_file::2024/03/07 17:19:55.236 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.241 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+convert_2_file::2024/03/07 17:19:55.241 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.243 | MainProcess | INFO | run_batch | get_data_files::112 | 28492 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+convert_2_file::2024/03/07 17:19:55.243 | MainProcess | INFO | verify_data | generate_text_data::103 | 28492 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.244 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+convert_2_file::2024/03/07 17:19:55.244 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.246 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+convert_2_file::2024/03/07 17:19:55.246 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.249 | MainProcess | INFO | run_batch | get_data_files::112 | 28492 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+convert_2_file::2024/03/07 17:19:55.249 | MainProcess | INFO | verify_data | generate_text_data::103 | 28492 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.250 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+convert_2_file::2024/03/07 17:19:55.250 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.253 | MainProcess | INFO | run_batch | get_data_files::109 | 28492 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+convert_2_file::2024/03/07 17:19:55.253 | MainProcess | INFO | verify_data | generate_excel_data::41 | 28492 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:19:55.257 | MainProcess | INFO | run_batch | write_data_to_tmp_file::127 | 28492 >>> Write Data to Tmp files..
+convert_2_file::2024/03/07 17:19:55.269 | MainProcess | INFO | verify_data | validation_data::121 | 28492 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:19:55.290 | MainProcess | INFO | run_batch | write_data_to_tmp_file::158 | 28492 >>> Genarate Sheet_name: RUN_TIME_2 in Tmp files.
+convert_2_file::2024/03/07 17:19:55.291 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> No Change Rows: (2) in Tmp files.
+convert_2_file::2024/03/07 17:19:55.291 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (3) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 15', 'AccountOwner': 'nan -> 16', 'AccountName': 'nan -> 17', 'AccountType': 'nan -> 18', 'EntitlementName': 'nan -> 19', 'SecondEntitlementName': 'nan -> 20', 'ThirdEntitlementName': 'nan -> 21', 'AccountStatus': 'nan -> 22', 'IsPrivileged': 'nan -> 23', 'AccountDescription': 'nan -> 24', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 26', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 28'}
+convert_2_file::2024/03/07 17:19:55.292 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (4) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 29', 'AccountOwner': 'nan -> 30', 'AccountName': 'nan -> 31', 'AccountType': 'nan -> 32', 'EntitlementName': 'nan -> 33', 'SecondEntitlementName': 'nan -> 34', 'ThirdEntitlementName': 'nan -> 35', 'AccountStatus': 'nan -> 36', 'IsPrivileged': 'nan -> 37', 'AccountDescription': 'nan -> 38', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 40', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 42'}
+convert_2_file::2024/03/07 17:19:55.292 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (5) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 43', 'AccountOwner': 'nan -> 44', 'AccountName': 'nan -> 45', 'AccountType': 'nan -> 46', 'EntitlementName': 'nan -> 47', 'SecondEntitlementName': 'nan -> 48', 'ThirdEntitlementName': 'nan -> 49', 'AccountStatus': 'nan -> 50', 'IsPrivileged': 'nan -> 51', 'AccountDescription': 'nan -> 52', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 54', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 56'}
+convert_2_file::2024/03/07 17:19:55.293 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (6) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 57', 'AccountOwner': 'nan -> 58', 'AccountName': 'nan -> 59', 'AccountType': 'nan -> 60', 'EntitlementName': 'nan -> 61', 'SecondEntitlementName': 'nan -> 62', 'ThirdEntitlementName': 'nan -> 63', 'AccountStatus': 'nan -> 64', 'IsPrivileged': 'nan -> 65', 'AccountDescription': 'nan -> 66', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 68', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 70'}
+convert_2_file::2024/03/07 17:19:55.294 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (7) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 71', 'AccountOwner': 'nan -> 72', 'AccountName': 'nan -> 73', 'AccountType': 'nan -> 74', 'EntitlementName': 'nan -> 75', 'SecondEntitlementName': 'nan -> 76', 'ThirdEntitlementName': 'nan -> 77', 'AccountStatus': 'nan -> 78', 'IsPrivileged': 'nan -> 79', 'AccountDescription': 'nan -> 80', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 82', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 83'}
+convert_2_file::2024/03/07 17:19:55.294 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 28492 >>> Inserted Rows: (8) in Tmp files. Record Changed: {'ApplicationCode': 'nan -> 84', 'AccountOwner': 'nan -> 85', 'AccountName': 'nan -> 86', 'AccountType': 'nan -> 87', 'EntitlementName': 'nan -> 88', 'SecondEntitlementName': 'nan -> 89', 'ThirdEntitlementName': 'nan -> 90', 'AccountStatus': 'nan -> 91', 'IsPrivileged': 'nan -> 92', 'AccountDescription': 'nan -> 93', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 95', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 96'}
+convert_2_file::2024/03/07 17:19:55.306 | MainProcess | INFO | run_batch | write_data_to_tmp_file::197 | 28492 >>> Write to Tmp files status: successed.
+convert_2_file::2024/03/07 17:19:55.306 | MainProcess | INFO | run_batch | write_data_to_target_file::207 | 28492 >>> Write Data to Target files..
+convert_2_file::2024/03/07 17:19:55.318 | MainProcess | INFO | verify_data | append_target_data::173 | 28492 >>> Append Target Data..
+convert_2_file::2024/03/07 17:19:55.320 | MainProcess | INFO | verify_data | validation_data::121 | 28492 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:19:55.344 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> No Change Rows: (5) in Target files.
+convert_2_file::2024/03/07 17:19:55.345 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> No Change Rows: (6) in Target files.
+convert_2_file::2024/03/07 17:19:55.345 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> No Change Rows: (7) in Target files.
+convert_2_file::2024/03/07 17:19:55.345 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> No Change Rows: (8) in Target files.
+convert_2_file::2024/03/07 17:19:55.346 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> Inserted Rows: (9) in Target files. Record Changed: {'ApplicationCode': 'nan -> 15', 'AccountOwner': 'nan -> 16', 'AccountName': 'nan -> 17', 'AccountType': 'nan -> 18', 'EntitlementName': 'nan -> 19', 'SecondEntitlementName': 'nan -> 20', 'ThirdEntitlementName': 'nan -> 21', 'AccountStatus': 'nan -> 22', 'IsPrivileged': 'nan -> 23', 'AccountDescription': 'nan -> 24', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 26', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 28'}
+convert_2_file::2024/03/07 17:19:55.346 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> Inserted Rows: (10) in Target files. Record Changed: {'ApplicationCode': 'nan -> 29', 'AccountOwner': 'nan -> 30', 'AccountName': 'nan -> 31', 'AccountType': 'nan -> 32', 'EntitlementName': 'nan -> 33', 'SecondEntitlementName': 'nan -> 34', 'ThirdEntitlementName': 'nan -> 35', 'AccountStatus': 'nan -> 36', 'IsPrivileged': 'nan -> 37', 'AccountDescription': 'nan -> 38', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 40', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 42'}
+convert_2_file::2024/03/07 17:19:55.346 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 28492 >>> Inserted Rows: (11) in Target files. Record Changed: {'ApplicationCode': 'nan -> 43', 'AccountOwner': 'nan -> 44', 'AccountName': 'nan -> 45', 'AccountType': 'nan -> 46', 'EntitlementName': 'nan -> 47', 'SecondEntitlementName': 'nan -> 48', 'ThirdEntitlementName': 'nan -> 49', 'AccountStatus': 'nan -> 50', 'IsPrivileged': 'nan -> 51', 'AccountDescription': 'nan -> 52', 'CreateDate': 'nan -> 2024-03-07', 'LastLogin': 'nan -> 54', 'LastUpdatedDate': 'nan -> 2024-03-07 17:19:55', 'AdditionalAttribute': 'nan -> 56'}
+convert_2_file::2024/03/07 17:19:55.355 | MainProcess | INFO | run_batch | write_data_to_target_file::275 | 28492 >>> Write to Target Files status: successed.
+convert_2_file::2024/03/07 17:19:55.356 | MainProcess | INFO | main | __init__::34 | 28492 >>> Stop Batch Date 2024-03-07
+==============================================================================================================================================================
+
+convert_2_file::2024/03/07 17:23:21.061 | MainProcess | INFO | main | __init__::21 | 19596 >>> Start Run Batch Date: 2024-03-07
+convert_2_file::2024/03/07 17:23:21.061 | MainProcess | INFO | run_batch | wrapper_success_files::38 | 19596 >>> Check Success files..
+convert_2_file::2024/03/07 17:23:21.062 | MainProcess | INFO | run_batch | wrapper_success_files::56 | 19596 >>> File found count 9 status: successed.
+convert_2_file::2024/03/07 17:23:21.063 | MainProcess | INFO | run_batch | get_data_files::99 | 19596 >>> Get Data from files..
+convert_2_file::2024/03/07 17:23:21.063 | MainProcess | INFO | run_batch | get_data_files::112 | 19596 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+convert_2_file::2024/03/07 17:23:21.063 | MainProcess | INFO | verify_data | generate_text_data::103 | 19596 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.064 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+convert_2_file::2024/03/07 17:23:21.065 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.068 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+convert_2_file::2024/03/07 17:23:21.068 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.070 | MainProcess | INFO | run_batch | get_data_files::112 | 19596 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+convert_2_file::2024/03/07 17:23:21.070 | MainProcess | INFO | verify_data | generate_text_data::103 | 19596 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.071 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+convert_2_file::2024/03/07 17:23:21.071 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.073 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+convert_2_file::2024/03/07 17:23:21.073 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.074 | MainProcess | INFO | run_batch | get_data_files::112 | 19596 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+convert_2_file::2024/03/07 17:23:21.075 | MainProcess | INFO | verify_data | generate_text_data::103 | 19596 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.075 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+convert_2_file::2024/03/07 17:23:21.075 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.078 | MainProcess | INFO | run_batch | get_data_files::109 | 19596 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+convert_2_file::2024/03/07 17:23:21.078 | MainProcess | INFO | verify_data | generate_excel_data::41 | 19596 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/07 17:23:21.081 | MainProcess | INFO | run_batch | write_data_to_tmp_file::127 | 19596 >>> Write Data to Tmp files..
+convert_2_file::2024/03/07 17:23:21.092 | MainProcess | INFO | verify_data | validation_data::121 | 19596 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:23:21.098 | MainProcess | INFO | run_batch | write_data_to_tmp_file::158 | 19596 >>> Genarate Sheet_name: RUN_TIME_3 in Tmp files.
+convert_2_file::2024/03/07 17:23:21.099 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> No Change Rows: (2) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.100 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (3) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.100 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (4) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.101 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (5) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.102 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (6) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.103 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (7) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.104 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 19596 >>> Removed Rows: (8) in Tmp files.
+convert_2_file::2024/03/07 17:23:21.118 | MainProcess | INFO | run_batch | write_data_to_tmp_file::197 | 19596 >>> Write to Tmp files status: successed.
+convert_2_file::2024/03/07 17:23:21.118 | MainProcess | INFO | run_batch | write_data_to_target_file::207 | 19596 >>> Write Data to Target files..
+convert_2_file::2024/03/07 17:23:21.130 | MainProcess | INFO | verify_data | append_target_data::173 | 19596 >>> Append Target Data..
+convert_2_file::2024/03/07 17:23:21.131 | MainProcess | INFO | verify_data | validation_data::121 | 19596 >>> Verify Changed information..
+convert_2_file::2024/03/07 17:23:21.143 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> No Change Rows: (5) in Target files.
+convert_2_file::2024/03/07 17:23:21.144 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (6) in Target files.
+convert_2_file::2024/03/07 17:23:21.144 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (7) in Target files.
+convert_2_file::2024/03/07 17:23:21.144 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (8) in Target files.
+convert_2_file::2024/03/07 17:23:21.144 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (9) in Target files.
+convert_2_file::2024/03/07 17:23:21.144 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (10) in Target files.
+convert_2_file::2024/03/07 17:23:21.145 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 19596 >>> Removed Rows: (11) in Target files.
+convert_2_file::2024/03/07 17:23:21.153 | MainProcess | INFO | run_batch | write_data_to_target_file::275 | 19596 >>> Write to Target Files status: successed.
+convert_2_file::2024/03/07 17:23:21.153 | MainProcess | INFO | main | __init__::34 | 19596 >>> Stop Batch Date 2024-03-07
+==============================================================================================================================================================
+
