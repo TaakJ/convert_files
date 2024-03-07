@@ -53,7 +53,7 @@ class convert_2_file(validate_files):
             if success_file.__contains__('missing'):
                 raise CustomException(func(*args))
             else:
-                logging.info(f"\033[1mFile found count {len(success_file)} status: successed.\033[0m")
+                logging.info(f"File found count {len(success_file)} status: successed.")
 
             return func(*args)
         return wrapper_success_files
@@ -155,7 +155,7 @@ class convert_2_file(validate_files):
                         ## write to tmp files
                         sheet_name = f'RUN_TIME_{sheet_num + 1}'
                         sheet = workbook.create_sheet(sheet_name)
-                        logging.info(f"Genarate Sheet_name: \033[1m{sheet_name}\033[0m in Tmp files.")
+                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
 
                         header =  [columns for columns in new_df[start_rows].keys()]
                         sheet.append(header)
@@ -165,13 +165,13 @@ class convert_2_file(validate_files):
                                     if start_rows in self.skip_rows and recoreded == 'Removed':
                                         sheet.cell(row=start_rows, column=idx).value = values
                                         sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
-                                        show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
+                                        show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
                                     elif start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
                                         sheet.cell(row=start_rows, column=idx).value = values
-                                        show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                                        show = f"{recoreded} Rows: ({start_rows}) in Tmp files. Record Changed: {self.diff_rows[start_rows]}"
                                     else:
                                         sheet.cell(row=start_rows, column=idx).value = values
-                                        show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
+                                        show = f"No Change Rows: ({start_rows}) in Tmp files."
                                 logging.info(show)
                             start_rows += 1
 
@@ -186,7 +186,7 @@ class convert_2_file(validate_files):
                         for r_idx, row in enumerate(rows, 1):
                             for c_idx, value in enumerate(row, 1):
                                 sheet.cell(row=r_idx, column=c_idx).value = value
-                            logging.info(f"\033[1mInserted\033[0m Rows: \033[1m({r_idx})\033[0m in Tmp files.")
+                            logging.info(f"Inserted Rows: ({r_idx}) in Tmp files.")
                     
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
@@ -253,12 +253,12 @@ class convert_2_file(validate_files):
                         for idx, columns in enumerate(new_df[start_rows].keys(), 1):
                             if columns == 'recoreded':
                                 if start_rows in self.diff_rows.keys() and new_df[start_rows][columns] in ['Updated', 'Inserted']:
-                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files. Record Changed: \033[1m{self.diff_rows[start_rows]}\033[0m"
+                                    show = f"{new_df[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.diff_rows[start_rows]}"
                                 elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
-                                    show = f"\033[1m{new_df[start_rows][columns]}\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                    show = f"{new_df[start_rows][columns]} Rows: ({start_rows}) in Target files."
                                     sheet.delete_rows(start_rows,sheet.max_row)
                                 else:
-                                    show = f"\033[1mNo Change\033[0m Rows: \033[1m({start_rows})\033[0m in Target files."
+                                    show = f"No Change Rows: ({start_rows}) in Target files."
                             else:
                                 if start_rows in self.skip_rows:
                                     continue
