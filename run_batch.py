@@ -8,6 +8,7 @@ from exception import CustomException
 from datetime import datetime
 import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Font
 
 
 class convert_2_file(validate_files):
@@ -163,6 +164,7 @@ class convert_2_file(validate_files):
                                 for idx, values in enumerate(new_df[start_rows].values(), 1):
                                     if start_rows in self.skip_rows and recoreded == 'Removed':
                                         sheet.cell(row=start_rows, column=idx).value = values
+                                        sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
                                         show = f"\033[1m{recoreded}\033[0m Rows: \033[1m({start_rows})\033[0m in Tmp files."
                                     elif start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
                                         sheet.cell(row=start_rows, column=idx).value = values
@@ -185,9 +187,10 @@ class convert_2_file(validate_files):
                             for c_idx, value in enumerate(row, 1):
                                 sheet.cell(row=r_idx, column=c_idx).value = value
                             logging.info(f"\033[1mInserted\033[0m Rows: \033[1m({r_idx})\033[0m in Tmp files.")
-
+                    
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
+                    
                     status = 'successed'
 
                     key.update({'sheet_name': sheet_name  ,'status': status})

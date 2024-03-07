@@ -10,7 +10,6 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
-import operator
 
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
