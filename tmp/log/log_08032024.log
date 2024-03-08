@@ -157,3 +157,43 @@ convert_2_file::2024/03/08 19:50:26.142 | MainProcess | INFO | main | __init__::
 
 ***************************************************************************************************************************
 
+convert_2_file::2024/03/08 19:53:15.457 | MainProcess | INFO | main | __init__::18 | 9528 >>> Start Run Batch Date: 2024-03-08
+convert_2_file::2024/03/08 19:53:15.457 | MainProcess | INFO | run_batch | wrapper_success_files::38 | 9528 >>> Check Success files..
+convert_2_file::2024/03/08 19:53:15.458 | MainProcess | INFO | run_batch | wrapper_success_files::56 | 9528 >>> File found count 9 status: successed.
+convert_2_file::2024/03/08 19:53:15.459 | MainProcess | INFO | run_batch | get_data_files::99 | 9528 >>> Get Data from files..
+convert_2_file::2024/03/08 19:53:15.459 | MainProcess | INFO | run_batch | get_data_files::112 | 9528 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+convert_2_file::2024/03/08 19:53:15.460 | MainProcess | INFO | verify_data | generate_text_data::103 | 9528 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.461 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+convert_2_file::2024/03/08 19:53:15.461 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.466 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+convert_2_file::2024/03/08 19:53:15.466 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.469 | MainProcess | INFO | run_batch | get_data_files::112 | 9528 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+convert_2_file::2024/03/08 19:53:15.469 | MainProcess | INFO | verify_data | generate_text_data::103 | 9528 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.470 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+convert_2_file::2024/03/08 19:53:15.470 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.472 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+convert_2_file::2024/03/08 19:53:15.472 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.475 | MainProcess | INFO | run_batch | get_data_files::112 | 9528 >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+convert_2_file::2024/03/08 19:53:15.475 | MainProcess | INFO | verify_data | generate_text_data::103 | 9528 >>> Cleansing Data in Text files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.475 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+convert_2_file::2024/03/08 19:53:15.476 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.479 | MainProcess | INFO | run_batch | get_data_files::109 | 9528 >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+convert_2_file::2024/03/08 19:53:15.479 | MainProcess | INFO | verify_data | generate_excel_data::41 | 9528 >>> Cleansing Data in Excel files to Dataframe..
+convert_2_file::2024/03/08 19:53:15.483 | MainProcess | INFO | run_batch | write_data_to_tmp_file::127 | 9528 >>> Write Data to Tmp files..
+convert_2_file::2024/03/08 19:53:15.501 | MainProcess | INFO | verify_data | validation_data::121 | 9528 >>> Verify Changed information..
+convert_2_file::2024/03/08 19:53:15.508 | MainProcess | INFO | run_batch | write_data_to_tmp_file::158 | 9528 >>> Genarate Sheet_name: RUN_TIME_5 in Tmp files.
+convert_2_file::2024/03/08 19:53:15.509 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 9528 >>> No Change Rows: (2) in Tmp files.
+convert_2_file::2024/03/08 19:53:15.510 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 9528 >>> Removed Rows: (3) in Tmp files.
+convert_2_file::2024/03/08 19:53:15.511 | MainProcess | INFO | run_batch | write_data_to_tmp_file::175 | 9528 >>> Removed Rows: (4) in Tmp files.
+convert_2_file::2024/03/08 19:53:15.531 | MainProcess | INFO | run_batch | write_data_to_tmp_file::197 | 9528 >>> Write to Tmp files status: successed.
+convert_2_file::2024/03/08 19:53:15.531 | MainProcess | INFO | run_batch | write_data_to_target_file::207 | 9528 >>> Write Data to Target files..
+convert_2_file::2024/03/08 19:53:15.545 | MainProcess | INFO | verify_data | append_target_data::172 | 9528 >>> Append Target Data..
+convert_2_file::2024/03/08 19:53:15.546 | MainProcess | INFO | verify_data | validation_data::121 | 9528 >>> Verify Changed information..
+convert_2_file::2024/03/08 19:53:15.559 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 9528 >>> No Change Rows: (6) in Target files.
+convert_2_file::2024/03/08 19:53:15.559 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 9528 >>> Removed Rows: (7) in Target files.
+convert_2_file::2024/03/08 19:53:15.559 | MainProcess | INFO | run_batch | write_data_to_target_file::267 | 9528 >>> Removed Rows: (8) in Target files.
+convert_2_file::2024/03/08 19:53:15.570 | MainProcess | INFO | run_batch | write_data_to_target_file::275 | 9528 >>> Write to Target Files status: successed.
+convert_2_file::2024/03/08 19:53:15.570 | MainProcess | INFO | main | __init__::31 | 9528 >>> Stop Batch Date 2024-03-08
+
+***************************************************************************************************************************
+
