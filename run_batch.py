@@ -174,7 +174,6 @@ class convert_2_file(validate_files):
                                         show = f"No Change Rows: ({start_rows}) in Tmp files."
                                 logging.info(show)
                             start_rows += 1
-
                     except FileNotFoundError:
                         ## write tmp files on first time.
                         sheet_name = 'RUN_TIME_1'
@@ -192,7 +191,6 @@ class convert_2_file(validate_files):
                     workbook.save(tmp_name)
                     
                     status = 'successed'
-
                     key.update({'sheet_name': sheet_name  ,'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
 
@@ -273,7 +271,6 @@ class convert_2_file(validate_files):
 
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
-
             except Exception as err:
                 key.update({'errors': err})
 

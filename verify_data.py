@@ -85,12 +85,10 @@ class validate_files(path_setup):
                         ## ADM
                         elif sheets == 'ADM':
                             lines = data
-
                         if sheets not in clean_data:
                             clean_data[sheets] = [lines]
                         else:
                             clean_data[sheets].append(lines)
-
                     rows += 1
                 except StopIteration:
                     break
