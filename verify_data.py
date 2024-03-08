@@ -168,18 +168,19 @@ class validate_files(path_setup):
     def append_target_data(self, select_date, target_df, tmp_df):
 
         logging.info("Append Target Data..")
+        
         ## unique_date
         unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
         ## other_date
         other_date = target_df[~target_df['CreateDate'].isin(select_date)].iloc[:, :-1].to_dict('index')
-        max_rows = max(other_date)
+        max_rows = max(other_date, default=0)
         ## compare data target / tmp
         compare_data = self.validation_data(unique_date, tmp_df)
         ## add value to other_date
         other_date = other_date | {max_rows + key:  {**values, **{'diff_rows': key}} \
             if key in self.diff_rows or key in self.skip_rows \
                 else values for key, values in compare_data.items()}
-        ## sorted value
+        ## sorted date value
         start_row = 2
         new_data = {start_row + idx :value for idx, value  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
         
@@ -194,5 +195,4 @@ class validate_files(path_setup):
                     self.skip_rows[idx] = key
                     idx += 1
                 value.pop('diff_rows')
-                
         return new_data

@@ -191,6 +191,7 @@ class convert_2_file(validate_files):
                     workbook.save(tmp_name)
                     
                     status = 'successed'
+
                     key.update({'sheet_name': sheet_name  ,'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
 
@@ -264,13 +265,13 @@ class convert_2_file(validate_files):
                                 continue
                             logging.info(show)
                         start_rows += 1
-
                     remove_row_empty(sheet)
+                    
                     workbook.save(target_name)
                     status = 'successed'
-
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
+
             except Exception as err:
                 key.update({'errors': err})
 
