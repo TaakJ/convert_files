@@ -14,10 +14,8 @@ class start_project(convert_2_file):
         
         try:
             date = datetime.today()
-            # fix_date = datetime(2024, 2, 25)
-            # days = (date - fix_date).days
-            # date = date - timedelta(days=days)
-            # logging.info('\n')
+            
+            "\n\n**************************************************//// START SCRIPT ////**********************************************************\n"
             logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
             super().__init__(date=date)
             
@@ -31,7 +29,8 @@ class start_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n==============================================================================================================================================================\n")
+            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\
+\n\n**************************************************//// END SCRIPT ////**********************************************************\n")
             
             
 if __name__ == "__main__":

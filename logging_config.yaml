@@ -15,14 +15,10 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
     formatter: verbose
-    # when: D
-    # interval: 1
-    backupCount: 1
-    filename: ./tmp/log/loginfo.log
-    # '.':
-    #   suffix: "%Y%m%d"
+    backupCount: 0
+    filename: ./tmp/log/
 root: 
   level: INFO
   handlers:
-    # - console
+    - console
     - file
