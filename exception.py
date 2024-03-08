@@ -1,7 +1,5 @@
 class CustomException(Exception):
     def __init__(self, err_):
-        self.n = 0
-        
         # for key, value in kwargs.items():
         #     setattr(self, key, value)
         
