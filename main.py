@@ -15,7 +15,6 @@ class start_project(convert_2_file):
         try:
             date = datetime.today()
             
-            "\n\n**************************************************//// START SCRIPT ////**********************************************************\n"
             logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
             super().__init__(date=date)
             
@@ -30,7 +29,7 @@ class start_project(convert_2_file):
                     break
         finally:
             logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\
-\n\n**************************************************//// END SCRIPT ////**********************************************************\n")
+\n\n***************************************************************************************************************************\n")
             
             
 if __name__ == "__main__":

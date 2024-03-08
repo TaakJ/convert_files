@@ -122,7 +122,6 @@ class validate_files(path_setup):
 
         if len(diff_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
-
         ## reset index data
         union_index = np.union1d(diff_df.index, new_df.index)
         ## target / tmp data
@@ -173,19 +172,15 @@ class validate_files(path_setup):
         logging.info("Append Target Data..")
         ## unique_date
         unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
-
         ## other_date
         other_date = target_df[~target_df['CreateDate'].isin(select_date)].iloc[:, :-1].to_dict('index')
         max_rows = max(other_date)
-
         ## compare data target / tmp
         compare_data = self.validation_data(unique_date, tmp_df)
-
         ## add value to other_date
         other_date = other_date | {max_rows + key:  {**values, **{'diff_rows': key}} \
             if key in self.diff_rows or key in self.skip_rows \
                 else values for key, values in compare_data.items()}
-
         ## sorted value
         start_row = 2
         new_data = {start_row + idx :value for idx, value  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
