@@ -20,9 +20,9 @@ class convert_2_file(validate_files):
 
         self.__log = []
         self.get_list_files()
-        self.get_data_files()
-        self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.get_data_files()
+        # self.write_data_to_tmp_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -168,7 +168,7 @@ class convert_2_file(validate_files):
                                         show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
                                     elif start_rows in self.diff_rows.keys() and recoreded in ['Updated', 'Inserted']:
                                         sheet.cell(row=start_rows, column=idx).value = values
-                                        show = f"{recoreded} Rows: ({start_rows}) in Tmp files. Record Changed: {self.diff_rows[start_rows]}"
+                                        show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\nRecord Changed: {self.diff_rows[start_rows]}"
                                     else:
                                         sheet.cell(row=start_rows, column=idx).value = values
                                         show = f"No Change Rows: ({start_rows}) in Tmp files."
@@ -252,7 +252,7 @@ class convert_2_file(validate_files):
                         for idx, columns in enumerate(new_df[start_rows].keys(), 1):
                             if columns == 'recoreded':
                                 if start_rows in self.diff_rows.keys() and new_df[start_rows][columns] in ['Updated', 'Inserted']:
-                                    show = f"{new_df[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.diff_rows[start_rows]}"
+                                    show = f"{new_df[start_rows][columns]} Rows: ({start_rows}) in Target files.\nnRecord Changed: {self.diff_rows[start_rows]}"
                                 elif start_rows in self.skip_rows and new_df[start_rows][columns] == 'Removed':
                                     show = f"{new_df[start_rows][columns]} Rows: ({start_rows}) in Target files."
                                     sheet.delete_rows(start_rows,sheet.max_row)

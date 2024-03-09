@@ -28,9 +28,7 @@ class start_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\
-\n\n***************************************************************************************************************************\n")
-            
+            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n\n")
             
 if __name__ == "__main__":
     start_project()
