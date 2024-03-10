@@ -20,9 +20,9 @@ class convert_2_file(validate_files):
 
         self.__log = []
         self.get_list_files()
-        # self.get_data_files()
-        # self.write_data_to_tmp_file()
-        # self.write_data_to_target_file()
+        self.get_data_files()
+        self.write_data_to_tmp_file()
+        self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -92,7 +92,7 @@ class convert_2_file(validate_files):
             func(*args).append({'source': 'Target_file', 'data': df.to_dict('list')})
 
         return wrapper_mock_data
-    
+
     @mock_data
     def get_data_files(self):
 
@@ -103,7 +103,7 @@ class convert_2_file(validate_files):
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
             key.update({'status': status})
-            
+
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel files: '{full_path}'.")
@@ -113,7 +113,7 @@ class convert_2_file(validate_files):
                     clean_data = self.generate_text_data(full_path=full_path)
                 status = 'successed'
                 key.update({'data': clean_data, 'status': status})
-                
+
             except Exception as err:
                 key.update({'errors': err})
 
@@ -186,10 +186,10 @@ class convert_2_file(validate_files):
                             for c_idx, value in enumerate(row, 1):
                                 sheet.cell(row=r_idx, column=c_idx).value = value
                             logging.info(f"Inserted Rows: ({r_idx}) in Tmp files.")
-                    
+
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
-                    
+
                     status = 'successed'
 
                     key.update({'sheet_name': sheet_name  ,'status': status})
@@ -236,7 +236,7 @@ class convert_2_file(validate_files):
                         else:
                             tmp_df = tmp_df.to_dict('index')
                             new_df = {start_rows + key: value for key,value in tmp_df.items()}
-                            
+
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
@@ -266,7 +266,7 @@ class convert_2_file(validate_files):
                             logging.info(show)
                         start_rows += 1
                     remove_row_empty(sheet)
-                    
+
                     workbook.save(target_name)
                     status = 'successed'
                     key.update({'status': status})

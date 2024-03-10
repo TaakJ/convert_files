@@ -14,7 +14,6 @@ class start_project(convert_2_file):
         
         try:
             date = datetime.today()
-            
             logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
             super().__init__(date=date)
             

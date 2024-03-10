@@ -120,12 +120,16 @@ class validate_files(path_setup):
 
         if len(diff_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
+
         ## reset index data
         union_index = np.union1d(diff_df.index, new_df.index)
+
         ## target / tmp data
         diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
+
         ## new data
         new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
+
         # compare data rows by rows
         diff_df['changed'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
@@ -168,31 +172,32 @@ class validate_files(path_setup):
     def append_target_data(self, select_date, target_df, tmp_df):
 
         logging.info("Append Target Data..")
-        
+
         ## unique_date
         unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
+
         ## other_date
         other_date = target_df[~target_df['CreateDate'].isin(select_date)].iloc[:, :-1].to_dict('index')
         max_rows = max(other_date, default=0)
+
         ## compare data target / tmp
         compare_data = self.validation_data(unique_date, tmp_df)
+
         ## add value to other_date
         other_date = other_date | {max_rows + key:  {**values, **{'diff_rows': key}} \
             if key in self.diff_rows or key in self.skip_rows \
                 else values for key, values in compare_data.items()}
+
         ## sorted date value
-        start_row = 2
-        new_data = {start_row + idx :value for idx, value  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
-        
         idx = 0
-        for key, value in new_data.items():
-            if value.get('diff_rows'):
-                ## diff rows
-                if value['diff_rows'] in self.diff_rows:
-                    self.diff_rows[key] = self.diff_rows.pop(value['diff_rows'])
-                ## skip rows
-                elif value['diff_rows'] in self.skip_rows:
+        start_row = 2
+        new_data = {start_row + idx :values for idx, values  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
+        for key, values in new_data.items():
+            if values.get('diff_rows'):
+                if values['diff_rows'] in self.diff_rows:
+                    self.diff_rows[key] = self.diff_rows.pop(values['diff_rows'])
+                elif values['diff_rows'] in self.skip_rows:
                     self.skip_rows[idx] = key
                     idx += 1
-                value.pop('diff_rows')
+                values.pop('diff_rows')
         return new_data
