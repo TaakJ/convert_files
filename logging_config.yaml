@@ -21,4 +21,4 @@ root:
   level: INFO
   handlers:
     - console
-    # - file
+    - file
