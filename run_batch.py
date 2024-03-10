@@ -20,9 +20,9 @@ class convert_2_file(validate_files):
 
         self.__log = []
         self.get_list_files()
-        self.get_data_files()
-        self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.get_data_files()
+        # self.write_data_to_tmp_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -51,7 +51,7 @@ class convert_2_file(validate_files):
                 key.update({'full_path': full_path, 'status': status})
 
             if success_file.__contains__('missing'):
-                raise CustomException(func(*args))
+                raise CustomException(errors=func(*args))
             else:
                 logging.info(f"File found count {len(success_file)} status: successed.")
 
@@ -118,7 +118,7 @@ class convert_2_file(validate_files):
                 key.update({'errors': err})
 
             if 'errors' in key:
-                raise CustomException(self.__log)
+                raise CustomException(errors=self.__log)
 
         return self.__log
 
@@ -199,7 +199,7 @@ class convert_2_file(validate_files):
                 key.update({'errors': err})
 
             if 'errors' in key:
-                raise CustomException(self.__log)
+                raise CustomException(errors=self.__log)
 
     def write_data_to_target_file(self):
 
@@ -276,4 +276,4 @@ class convert_2_file(validate_files):
                 key.update({'errors': err})
 
         if 'errors' in key:
-            raise CustomException(self.__log)
+            raise CustomException(errors=self.__log)

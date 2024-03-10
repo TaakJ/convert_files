@@ -7,7 +7,7 @@ from exception import CustomException
 class start_project(convert_2_file):
     def __init__(self):
         
-        self.setup_log()
+        # self.setup_log()
         # self.backup_folder()
         # self.clear_folder()
         # self.setup_folder()
@@ -16,13 +16,13 @@ class start_project(convert_2_file):
             date = datetime.today()
             logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
             super().__init__(date=date)
+        except CustomException as errors:
             
-        except CustomException as err:  
-            logging.error("Error Exception")     
-            err_ = iter(err)
+            logging.error("Error Exception")
+            
             while True:
                 try:
-                    msg_err = next(err_)
+                    msg_err = next(errors)
                     logging.error(msg_err)
                 except StopIteration:
                     break
