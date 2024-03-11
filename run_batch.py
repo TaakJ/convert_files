@@ -20,10 +20,10 @@ class convert_2_file(validate_files):
             setattr(self, key, value)
             
         self.__log = []
-        # self.get_list_files()
-        # self.get_data_files()
-        # self.write_data_to_tmp_file()
-        # self.write_data_to_target_file()
+        self.get_list_files()
+        self.get_data_files()
+        self.write_data_to_tmp_file()
+        self.write_data_to_target_file()
 
     @property
     def logging(self):

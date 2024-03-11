@@ -26,14 +26,14 @@ class ArgumentParams:
     ISFLAG = 'flag'
     TYPE = 'type'
     CHOICES = 'choices'
-    
-    
+
+
 class setup_parser:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.add_arguments()
         self.get_args  = self.parser.parse_args()
-        
+
     @staticmethod
     def get_args_list():
         return [
@@ -46,7 +46,7 @@ class setup_parser:
                 ArgumentParams.DEFAULT : datetime.today()
             }
         ]
-        
+
     def add_arguments(self):
         # add arguments
         for args in self.get_args_list():
@@ -58,27 +58,27 @@ class setup_parser:
             choices = args.get(ArgumentParams.CHOICES)
             _type = args.get(ArgumentParams.TYPE)
             action = 'store_true' if args.get(ArgumentParams.ISFLAG) else 'store'
-            
+
             if _type:
-                self.parser.add_argument(short_name, name, help=description, required=required, 
+                self.parser.add_argument(short_name, name, help=description, required=required,
                                     default=default, type=_type)
             else:
                 if action == 'store_true':
-                    self.parser.add_argument(short_name, name, help=description, required=required, 
+                    self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action)
                 else:
-                    self.parser.add_argument(short_name, name, help=description, required=required, 
+                    self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action, choices=choices)
     def vadidate_arguments(self):
         print('')
-        
+
 
 def setup_log():
-    
+
     config_yaml  = None
     date = datetime.today().strftime("%d%m%Y")
     log_name = f'log_{date}.log'
-    
+
     if os.path.exists(LOGGER_CONFIG):
         with open(LOGGER_CONFIG, 'rb') as logger:
             config_yaml  = yaml.safe_load(logger.read())
@@ -87,17 +87,17 @@ def setup_log():
                     log_path = config_yaml["handlers"][i]["filename"]
                     log_file = log_path + log_name
             config_yaml["handlers"][i]["filename"] = log_file
-            
+
             logging.config.dictConfig(config_yaml)
     else:
         raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
-    
-        
+
+
 def setup_folder():
     _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_')]
     for folder in _folders:
         os.makedirs(folder, exist_ok=True)
-        
+
 
 def clear_folder():
     _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_') and value.endswith('dd_export/')]
