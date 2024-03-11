@@ -21,9 +21,9 @@ class convert_2_file(validate_files):
 
         self.__log = []
         self.get_list_files()
-        self.get_data_files()
-        self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.get_data_files()
+        # self.write_data_to_tmp_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -154,10 +154,11 @@ class convert_2_file(validate_files):
                         ## read tmp files
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
-                        ## compare data new data with tmp data
+                        ## compare new data with tmp data
                         new_data = self.validation_data(tmp_df, new_df)
                         
                     except FileNotFoundError:
+                        ## get new data 
                         new_df.index += start_rows
                         new_data = new_df.to_dict('index')
                         self.diff_rows = new_data

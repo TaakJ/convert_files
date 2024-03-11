@@ -9,7 +9,6 @@ class start_project(convert_2_file):
         
         self.setup_folder()
         self.setup_log()
-        
         try:
             date = datetime.today()
             logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
@@ -26,7 +25,6 @@ class start_project(convert_2_file):
                     break
         finally:
             logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n")
-            
         self.clear_folder()
             
 if __name__ == "__main__":
