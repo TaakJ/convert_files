@@ -6,13 +6,9 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from setup import setup_path
 
-class validate_files(setup_path):
-
+class validate_files:
     def __init__(self):
-        super().__init__()
-
         self.diff_rows = {}
         self.skip_rows = []
 
