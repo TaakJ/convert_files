@@ -6,6 +6,7 @@ import numpy as np
 from pathlib import Path
 from verify_data import validate_files
 from exception import CustomException
+from datetime import timedelta, datetime
 from setup import Folder
 from datetime import datetime
 import openpyxl
@@ -13,12 +14,12 @@ from openpyxl.styles import Font
 
 
 class convert_2_file(validate_files):
-    def __init__(self, kwargs):
+    def __init__(self, **kwargs):
         super().__init__()
-        
+
         for key, value in kwargs.items():
             setattr(self, key, value)
-            
+
         self.__log = []
         self.get_list_files()
         self.get_data_files()
@@ -78,13 +79,13 @@ class convert_2_file(validate_files):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
-                        [1,2,3,4,5,6,7,8,9,10,args[0].date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,args[0].date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
-                        # [29,30,31,32,33,34,35,36,37,38,args[0].date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
-                        # [43,44,45,46,47,48,49,50,51,52,args[0].date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
-                        # [57,58,59,60,61,62,63,64,65,66,args[0].date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70],
-                        # [71,72,73,74,75,76,77,78,79,80,args[0].date.strftime('%Y-%m-%d'),82,now.strftime('%Y-%m-%d %H:%M:%S'),83],
-                        # [84,85,86,87,88,89,90,91,92,93,args[0].date.strftime('%Y-%m-%d'),95,now.strftime('%Y-%m-%d %H:%M:%S'),96],
+                        [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
+                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        # [29,30,31,32,33,34,35,36,37,38,args[0].batch_date.strftime('%Y-%m-%d'),40, args[0].date,42],
+                        # [43,44,45,46,47,48,49,50,51,52,args[0].batch_date.strftime('%Y-%m-%d'),54,args[0].date,56],
+                        # [57,58,59,60,61,62,63,64,65,66,args[0].batch_date.strftime('%Y-%m-%d'),68,args[0].date,70],
+                        # [71,72,73,74,75,76,77,78,79,80,args[0].batch_date.strftime('%Y-%m-%d'),82,args[0].date,83],
+                        # [84,85,86,87,88,89,90,91,92,93,args[0].batch_date.strftime('%Y-%m-%d'),95,args[0].date,96],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -126,7 +127,7 @@ class convert_2_file(validate_files):
 
         logging.info("Write Data to Tmp files..")
 
-        tmp_name = f"{Folder.TMP}DD_{self.date.strftime('%d%m%Y')}.xlsx"
+        tmp_name = f"{Folder.TMP}DD_{self.batch_date.strftime('%d%m%Y')}.xlsx"
         workbook = openpyxl.Workbook()
         status = 'failed'
         start_rows = 2
@@ -145,10 +146,6 @@ class convert_2_file(validate_files):
                         sheet_num = len(get_sheet)
                         sheet_name = f'RUN_TIME_{sheet_num}'
                         workbook.active = sheet_num
-                        ## genarate apeend sheet tmp files.
-                        sheet_name = f'RUN_TIME_{sheet_num + 1}'
-                        sheet = workbook.create_sheet(sheet_name)
-                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
 
                         ## read tmp files
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
@@ -156,18 +153,23 @@ class convert_2_file(validate_files):
                         ## compare new data with tmp data
                         new_data = self.validation_data(tmp_df, new_df)
 
+                        ## genarate apeend sheet tmp files.
+                        sheet_name = f'RUN_TIME_{sheet_num + 1}'
+                        sheet = workbook.create_sheet(sheet_name)
+                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
+
                     except FileNotFoundError:
+                        ## get new data
+                        new_df.index += start_rows
+                        new_data = new_df.to_dict('index')
+                        self.diff_rows = new_data
+
                         ## genarate shett tmp files on first time.
                         sheet_name = 'RUN_TIME_1'
                         sheet = workbook.worksheets[0]
                         sheet_num = 1
                         sheet.title = sheet_name
                         logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
-
-                        ## get new data
-                        new_df.index += start_rows
-                        new_data = new_df.to_dict('index')
-                        self.diff_rows = new_data
 
                     ## write rows to tmp files.
                     status = self.wirte_rows(start_rows, sheet, new_data)
@@ -176,7 +178,7 @@ class convert_2_file(validate_files):
 
                     key.update({'sheet_name': sheet_name,'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
-                    
+
             except Exception as err:
                 key.update({'errors': err})
 
@@ -208,7 +210,7 @@ class convert_2_file(validate_files):
                 start_rows += 1
 
             status = 'successed'
-            
+
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
         return status
@@ -251,7 +253,7 @@ class convert_2_file(validate_files):
                             new_data = tmp_df
 
                         key.update({'full_path': target_name, 'status': status})
-                        
+
                     except Exception as err:
                         key.update({'errors': err})
 

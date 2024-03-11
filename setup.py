@@ -32,21 +32,22 @@ class setup_parser:
     def __init__(self):
         self.parser = argparse.ArgumentParser()
         self.add_arguments()
-        self.get_args  = self.parser.parse_args()
+        self.param = self.parser.parse_args()
 
     @staticmethod
     def get_args_list():
         return [
             {
-                ArgumentParams.SHORT_NAME : '-date',
-                ArgumentParams.NAME : '--date',
-                ArgumentParams.DESCRIPTION : 'Example of a parameter',
+                ArgumentParams.SHORT_NAME : '-b',
+                ArgumentParams.NAME : '--batch_date',
+                ArgumentParams.DESCRIPTION : 'format YYYY-MM-DD',
                 ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : True,
+                ArgumentParams.TYPE : lambda d: datetime.strptime(d, '%Y-%m-%d'),
                 ArgumentParams.DEFAULT : datetime.today()
             }
         ]
-
+        
     def add_arguments(self):
         # add arguments
         for args in self.get_args_list():
@@ -58,7 +59,7 @@ class setup_parser:
             choices = args.get(ArgumentParams.CHOICES)
             _type = args.get(ArgumentParams.TYPE)
             action = 'store_true' if args.get(ArgumentParams.ISFLAG) else 'store'
-
+            
             if _type:
                 self.parser.add_argument(short_name, name, help=description, required=required,
                                     default=default, type=_type)
@@ -69,9 +70,6 @@ class setup_parser:
                 else:
                     self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action, choices=choices)
-    def vadidate_arguments(self):
-        print('')
-
 
 def setup_log():
 
