@@ -9,7 +9,7 @@ import numpy as np
 
 class validate_files:
     def __init__(self):
-        self.diff_rows = {}
+        self.upsert_rows = {}
         self.skip_rows = []
 
     def clean_lines_excel(func):
@@ -132,7 +132,6 @@ class validate_files:
         start_rows = 2
         for idx in union_index:
             if idx not in self.skip_rows:
-
                 changed_value = {}
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'changed'] != 14:
@@ -143,13 +142,13 @@ class validate_files:
                         else:
                             if diff[1][idx] != new[1][idx]:
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-                            self.diff_rows[start_rows + idx] = changed_value
+                            self.upsert_rows[start_rows + idx] = changed_value
                             ## Updated rows
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
                     else:
                         changed_value.update({diff[0]: f"{new[1][idx]}"})
-                        self.diff_rows[start_rows + idx] = changed_value
+                        self.upsert_rows[start_rows + idx] = changed_value
                         ## Inserted rows
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = 'Inserted'
@@ -179,21 +178,21 @@ class validate_files:
         compare_data = self.validation_data(unique_date, tmp_df)
 
         ## add value to other_date
-        other_date = other_date | {max_rows + key:  {**values, **{'diff_rows': key}} \
-            if key in self.diff_rows or key in self.skip_rows \
+        other_date = other_date | {max_rows + key:  {**values, **{'upsert_rows': key}} \
+            if key in self.upsert_rows or key in self.skip_rows \
                 else values for key, values in compare_data.items()}
-
+        
         ## sorted date value
         idx = 0
         start_row = 2
         new_data = {start_row + idx :values for idx, values  in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
         for key, values in new_data.items():
-            if values.get('diff_rows'):
-                if values['diff_rows'] in self.diff_rows:
-                    self.diff_rows[key] = self.diff_rows.pop(values['diff_rows'])
-                elif values['diff_rows'] in self.skip_rows:
+            if values.get('upsert_rows'):
+                if values['upsert_rows'] in self.upsert_rows:
+                    self.upsert_rows[key] = self.upsert_rows.pop(values['upsert_rows'])
+                elif values['upsert_rows'] in self.skip_rows:
                     self.skip_rows[idx] = key
                     idx += 1
-                values.pop('diff_rows')
-                
+                values.pop('upsert_rows')
+        
         return new_data

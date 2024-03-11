@@ -10,10 +10,9 @@ class setup_project(convert_2_file):
         setup_folder()
         setup_log()
         try:
-            date = datetime.now()
-            batch_date = setup_parser().param.batch_date
-            logging.info(f"Start Run Batch Date: {date}")
-            super().__init__(batch_date=batch_date, date=date)
+            args = setup_parser().parsed_params
+            logging.info(f"Start Run Batch Date: {args.batch_date}")
+            super().__init__(**vars(args))
             
         except CustomException as errors:
             logging.error("Error Exception")
@@ -24,8 +23,9 @@ class setup_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            logging.info(f"Stop Batch Date {date}\n") 
             ''
+            # logging.info(f"Stop Batch Date {args.batch_date}\n") 
+            
         clear_folder()
         
 if __name__ == "__main__":

@@ -16,11 +16,15 @@ from openpyxl.styles import Font
 class convert_2_file(validate_files):
     def __init__(self, **kwargs):
         super().__init__()
-
-        for key, value in kwargs.items():
+        
+        self.__dict__.update(kwargs)
+        
+        for key, value in self.__dict__.items():
             setattr(self, key, value)
-
-        self.__log = []
+        
+        self.__log = []    
+        self.date = datetime.now()
+        
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
@@ -79,13 +83,8 @@ class convert_2_file(validate_files):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
-                        [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
+                        [10,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
                         # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
-                        # [29,30,31,32,33,34,35,36,37,38,args[0].batch_date.strftime('%Y-%m-%d'),40, args[0].date,42],
-                        # [43,44,45,46,47,48,49,50,51,52,args[0].batch_date.strftime('%Y-%m-%d'),54,args[0].date,56],
-                        # [57,58,59,60,61,62,63,64,65,66,args[0].batch_date.strftime('%Y-%m-%d'),68,args[0].date,70],
-                        # [71,72,73,74,75,76,77,78,79,80,args[0].batch_date.strftime('%Y-%m-%d'),82,args[0].date,83],
-                        # [84,85,86,87,88,89,90,91,92,93,args[0].batch_date.strftime('%Y-%m-%d'),95,args[0].date,96],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -156,22 +155,21 @@ class convert_2_file(validate_files):
                         ## genarate apeend sheet tmp files.
                         sheet_name = f'RUN_TIME_{sheet_num + 1}'
                         sheet = workbook.create_sheet(sheet_name)
-                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
 
                     except FileNotFoundError:
                         ## get new data
                         new_df.index += start_rows
                         new_data = new_df.to_dict('index')
-                        self.diff_rows = new_data
+                        self.upsert_rows = new_data
 
                         ## genarate shett tmp files on first time.
                         sheet_name = 'RUN_TIME_1'
                         sheet = workbook.worksheets[0]
                         sheet_num = 1
                         sheet.title = sheet_name
-                        logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
 
                     ## write rows to tmp files.
+                    logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
                     status = self.wirte_rows(start_rows, sheet, new_data)
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
@@ -200,9 +198,9 @@ class convert_2_file(validate_files):
                             sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
                             show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
                         ## Updated/ Inserted
-                        elif start_rows in self.diff_rows.keys() and recoreded in ['Inserted', 'Updated']:
+                        elif start_rows in self.upsert_rows.keys() and recoreded in ['Inserted', 'Updated']:
                             sheet.cell(row=start_rows, column=idx).value = values
-                            show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\nRecord Changed: {self.diff_rows[start_rows]}"
+                            show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
                         else:
                             sheet.cell(row=start_rows, column=idx).value = values
                             show = f"No Change Rows: ({start_rows}) in Tmp files."
@@ -266,8 +264,8 @@ class convert_2_file(validate_files):
                     while start_rows <= max(new_data):
                         for idx, columns in enumerate(new_data[start_rows].keys(), 1):
                             if columns == 'recoreded':
-                                if start_rows in self.diff_rows.keys() and new_data[start_rows][columns] in ['Updated', 'Inserted']:
-                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files.\nnRecord Changed: {self.diff_rows[start_rows]}"
+                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ['Updated', 'Inserted']:
+                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
                                 elif start_rows in self.skip_rows and new_data[start_rows][columns] == 'Removed':
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
                                     sheet.delete_rows(start_rows, sheet.max_row)

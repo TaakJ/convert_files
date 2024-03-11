@@ -41,7 +41,7 @@ def setup_log():
 
             logging.config.dictConfig(config_yaml)
     else:
-        raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
+        raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist.")
 
 def setup_folder():
     _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_')]
@@ -58,7 +58,7 @@ class setup_parser:
         
         self.parser = argparse.ArgumentParser()
         self.add_arguments()
-        self.param = self.parser.parse_args()
+        self.parsed_params = self.parser.parse_args()
 
     @staticmethod
     def get_args_list():
@@ -68,9 +68,17 @@ class setup_parser:
                 ArgumentParams.NAME : '--batch_date',
                 ArgumentParams.DESCRIPTION : 'format YYYY-MM-DD',
                 ArgumentParams.REQUIRED : False,
+                ArgumentParams.ISFLAG : False,
+                ArgumentParams.TYPE : lambda d: datetime.strptime(d, '%Y-%m-%d').date(),
+                ArgumentParams.DEFAULT : datetime.today().date()
+            },
+            {
+                ArgumentParams.SHORT_NAME : '-w',
+                ArgumentParams.NAME : '--mode',
+                ArgumentParams.DESCRIPTION : 'write mode: overwrite, append',
+                ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : True,
-                ArgumentParams.TYPE : lambda d: datetime.strptime(d, '%Y-%m-%d'),
-                ArgumentParams.DEFAULT : datetime.today()
+                ArgumentParams.DEFAULT: 'append'
             }
         ]
         
