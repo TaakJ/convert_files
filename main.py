@@ -7,27 +7,27 @@ from exception import CustomException
 class start_project(convert_2_file):
     def __init__(self):
         
-        # self.setup_log()
-        # self.backup_folder()
-        # self.clear_folder()
-        # self.setup_folder()
+        self.setup_folder()
+        self.setup_log()
         
-        try:
-            date = datetime.today()
-            logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
-            super().__init__(date=date)
-        except CustomException as errors:
+        # try:
+        #     date = datetime.today()
+        #     logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
+        #     super().__init__(date=date)
+        # except CustomException as errors:
             
-            logging.error("Error Exception")
+        #     logging.error("Error Exception")
             
-            while True:
-                try:
-                    msg_err = next(errors)
-                    logging.error(msg_err)
-                except StopIteration:
-                    break
-        finally:
-            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n\n")
+        #     while True:
+        #         try:
+        #             msg_err = next(errors)
+        #             logging.error(msg_err)
+        #         except StopIteration:
+        #             break
+        # finally:
+        #     logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n")
+            
+        self.clear_folder()
             
 if __name__ == "__main__":
     start_project()

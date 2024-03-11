@@ -6,10 +6,10 @@ from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from setup import path_setup
+from setup import setup_path
 
 
-class validate_files(path_setup):
+class validate_files(setup_path):
 
     def __init__(self):
         super().__init__()

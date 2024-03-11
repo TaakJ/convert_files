@@ -89,7 +89,9 @@ class convert_2_file(validate_files):
             df.columns = df.iloc[0].values
             df = df[1:]
             df = df.reset_index(drop=True)
-            func(*args).append({'source': 'Target_file', 'data': df.to_dict('list')})
+            print(df)
+            
+            # func(*args).append({'source': 'Target_file', 'data': df.to_dict('list')})
 
         return wrapper_mock_data
 
