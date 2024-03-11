@@ -153,7 +153,7 @@ class validate_files(setup_path):
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = 'Updated'
                     else:
-                        changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
+                        changed_value.update({diff[0]: f"{new[1][idx]}"})
                         self.diff_rows[start_rows + idx] = changed_value
                         ## Inserted rows
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
@@ -164,9 +164,9 @@ class validate_files(setup_path):
 
         self.skip_rows = [start_rows + row for row in self.skip_rows]
         diff_df = diff_df.drop(['changed'], axis=1)
-        diff_df = diff_df.to_dict('index')
-
-        new_data = {start_rows + row: diff_df[row] for row in diff_df}
+        diff_df.index += start_rows 
+        new_data = diff_df.to_dict('index')
+        
         return new_data
 
     def append_target_data(self, select_date, target_df, tmp_df):
@@ -200,4 +200,5 @@ class validate_files(setup_path):
                     self.skip_rows[idx] = key
                     idx += 1
                 values.pop('diff_rows')
+                
         return new_data

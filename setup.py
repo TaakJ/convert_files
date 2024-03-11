@@ -19,7 +19,7 @@ class setup_path:
     EXPORT      = join(CURRENT_DIR, "export/")
     TMP         = join(CURRENT_DIR, "tmp/dd_export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
-    TEMPLATE    = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
+    FILE        = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
 
     @staticmethod
     def setup_log():
@@ -45,14 +45,12 @@ class setup_path:
         _folders = [value for name, value in vars(setup_path).items() if isinstance(value, str) and not name.startswith('_')]
         for folder in _folders:
             os.makedirs(folder, exist_ok=True)
-            # logging.info(f"folder::'{folder}' created.")
 
     @staticmethod
     def clear_folder():
         _folders = [value for name, value in vars(setup_path).items() if isinstance(value, str) and not name.startswith('_') and value.endswith('dd_export/')]
         for folder in _folders:
             shutil.rmtree(folder)
-            # logging.info(f"removed files in folder::'{folder}'.")
 
     # @staticmethod
     # def backup_folder():
