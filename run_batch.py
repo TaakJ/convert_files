@@ -6,21 +6,21 @@ import numpy as np
 from pathlib import Path
 from verify_data import validate_files
 from exception import CustomException
+from setup import Folder
 from datetime import datetime
 import openpyxl
-from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import Font
 
 
 class convert_2_file(validate_files):
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
         super().__init__()
-
+        
         for key, value in kwargs.items():
             setattr(self, key, value)
-
+            
         self.__log = []
-        self.get_list_files()
+        # self.get_list_files()
         # self.get_data_files()
         # self.write_data_to_tmp_file()
         # self.write_data_to_target_file()
@@ -41,7 +41,7 @@ class convert_2_file(validate_files):
             success_file = []
             for key in func(*args):
                 filename = key['full_path']
-                full_path = args[0].RAW + filename
+                full_path = Folder.RAW + filename
 
                 if glob.glob(full_path, recursive=True):
                     status = 'successed'
@@ -63,7 +63,7 @@ class convert_2_file(validate_files):
     def get_list_files(self):
         if self.__log == []:
             args = []
-            for file in self.FILE:
+            for file in Folder.FILE:
                 source = Path(file).stem
                 args.append({'source': source, 'full_path': file})
             self.__log = args
@@ -79,7 +79,7 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].date.strftime('%Y-%m-%d'),12, now.strftime('%Y-%m-%d %H:%M:%S'),14],
-                        # [15,16,17,18,19,20,21,22,23,24,args[0].date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
+                        [15,16,17,18,19,20,21,22,23,24,args[0].date.strftime('%Y-%m-%d'),26, now.strftime('%Y-%m-%d %H:%M:%S'),28],
                         # [29,30,31,32,33,34,35,36,37,38,args[0].date.strftime('%Y-%m-%d'),40, now.strftime('%Y-%m-%d %H:%M:%S'),42],
                         # [43,44,45,46,47,48,49,50,51,52,args[0].date.strftime('%Y-%m-%d'),54,now.strftime('%Y-%m-%d %H:%M:%S'),56],
                         # [57,58,59,60,61,62,63,64,65,66,args[0].date.strftime('%Y-%m-%d'),68,now.strftime('%Y-%m-%d %H:%M:%S'),70],
@@ -126,11 +126,11 @@ class convert_2_file(validate_files):
 
         logging.info("Write Data to Tmp files..")
 
-        tmp_name = f"{self.TMP}DD_{self.date.strftime('%d%m%Y')}.xlsx"
+        tmp_name = f"{Folder.TMP}DD_{self.date.strftime('%d%m%Y')}.xlsx"
         workbook = openpyxl.Workbook()
         status = 'failed'
         start_rows = 2
-        
+
         for key in self.__log:
             try:
                 if key['source'] == 'Target_file':
@@ -145,7 +145,6 @@ class convert_2_file(validate_files):
                         sheet_num = len(get_sheet)
                         sheet_name = f'RUN_TIME_{sheet_num}'
                         workbook.active = sheet_num
-                        
                         ## genarate apeend sheet tmp files.
                         sheet_name = f'RUN_TIME_{sheet_num + 1}'
                         sheet = workbook.create_sheet(sheet_name)
@@ -156,28 +155,28 @@ class convert_2_file(validate_files):
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
                         ## compare new data with tmp data
                         new_data = self.validation_data(tmp_df, new_df)
-                        
+
                     except FileNotFoundError:
-                        ## get new data 
-                        new_df.index += start_rows
-                        new_data = new_df.to_dict('index')
-                        self.diff_rows = new_data
-                        
                         ## genarate shett tmp files on first time.
                         sheet_name = 'RUN_TIME_1'
                         sheet = workbook.worksheets[0]
                         sheet_num = 1
                         sheet.title = sheet_name
                         logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
-                        
+
+                        ## get new data
+                        new_df.index += start_rows
+                        new_data = new_df.to_dict('index')
+                        self.diff_rows = new_data
+
                     ## write rows to tmp files.
                     status = self.wirte_rows(start_rows, sheet, new_data)
                     workbook.move_sheet(workbook.active, offset = -sheet_num)
                     workbook.save(tmp_name)
-                    
+
                     key.update({'sheet_name': sheet_name,'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
-
+                    
             except Exception as err:
                 key.update({'errors': err})
 
@@ -207,17 +206,18 @@ class convert_2_file(validate_files):
                             show = f"No Change Rows: ({start_rows}) in Tmp files."
                 logging.info(show)
                 start_rows += 1
+
             status = 'successed'
+            
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
-        
         return status
-        
+
     def write_data_to_target_file(self):
 
         logging.info("Write Data to Target files..")
 
-        target_name = f"{self.EXPORT}Application Data Requirements.xlsx"
+        target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
         status = 'failed'
         start_rows = 2
 
@@ -251,7 +251,7 @@ class convert_2_file(validate_files):
                             new_data = tmp_df
 
                         key.update({'full_path': target_name, 'status': status})
-
+                        
                     except Exception as err:
                         key.update({'errors': err})
 
@@ -278,9 +278,8 @@ class convert_2_file(validate_files):
                                 continue
                             logging.info(show)
                         start_rows += 1
-                        
-                    remove_row_empty(sheet)
 
+                    remove_row_empty(sheet)
                     workbook.save(target_name)
                     status = 'successed'
                     key.update({'status': status})

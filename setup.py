@@ -1,3 +1,4 @@
+import argparse
 import logging.config
 import shutil
 import yaml
@@ -5,21 +6,72 @@ import os
 from os.path import join
 from datetime import datetime
 
+
 CURRENT_DIR = os.getcwd()
 LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 
-class setup_parameter():
-    def __init__(self):
-        'pass'
-
-
-class setup_path:
-    
+class Folder:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
     TMP         = join(CURRENT_DIR, "tmp/dd_export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     FILE        = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
+
+
+class ArgumentParams:
+    SHORT_NAME = 'short_name'
+    NAME = 'name'
+    DESCRIPTION = 'description'
+    REQUIRED = 'required'
+    DEFAULT = 'default'
+    ISFLAG = 'flag'
+    TYPE = 'type'
+    CHOICES = 'choices'
+
+
+class setup_parser:
+    def __init__(self):
+        self.parser = argparse.ArgumentParser()
+        self.add_arguments()
+        self.get_args  = self.parser.parse_args()
+        
+    @staticmethod
+    def get_args_list():
+        return [
+            {
+                ArgumentParams.SHORT_NAME : '-date',
+                ArgumentParams.NAME : '--date',
+                ArgumentParams.DESCRIPTION : 'Example of a parameter',
+                ArgumentParams.REQUIRED : False,
+                ArgumentParams.ISFLAG : True,
+                ArgumentParams.DEFAULT : datetime.today()
+            }
+        ]
+
+    def add_arguments(self):
+        # add arguments
+        for args in self.get_args_list():
+            short_name = args.get(ArgumentParams.SHORT_NAME)
+            name = args.get(ArgumentParams.NAME)
+            description = args.get(ArgumentParams.DESCRIPTION)
+            required = args.get(ArgumentParams.REQUIRED)
+            default = args.get(ArgumentParams.DEFAULT)
+            choices = args.get(ArgumentParams.CHOICES)
+            _type = args.get(ArgumentParams.TYPE)
+            action = 'store_true' if args.get(ArgumentParams.ISFLAG) else 'store'
+            
+            if _type:
+                self.parser.add_argument(short_name, name, help=description, required=required, 
+                                    default=default, type=_type)
+            else:
+                if action == 'store_true':
+                    self.parser.add_argument(short_name, name, help=description, required=required, 
+                                        default=default, action=action)
+                else:
+                    self.parser.add_argument(short_name, name, help=description, required=required, 
+                                        default=default, action=action, choices=choices)
+                    
+class setup_path:
 
     @staticmethod
     def setup_log():
@@ -35,34 +87,18 @@ class setup_path:
                         log_path = config_yaml["handlers"][i]["filename"]
                         log_file = log_path + log_name
                 config_yaml["handlers"][i]["filename"] = log_file
-                
                 logging.config.dictConfig(config_yaml)
         else:
             raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist")
             
     @staticmethod
     def setup_folder():
-        _folders = [value for name, value in vars(setup_path).items() if isinstance(value, str) and not name.startswith('_')]
+        _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_')]
         for folder in _folders:
             os.makedirs(folder, exist_ok=True)
 
     @staticmethod
     def clear_folder():
-        _folders = [value for name, value in vars(setup_path).items() if isinstance(value, str) and not name.startswith('_') and value.endswith('dd_export/')]
+        _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_') and value.endswith('dd_export/')]
         for folder in _folders:
             shutil.rmtree(folder)
-
-    # @staticmethod
-    # def backup_folder():
-    #     date = datetime.now().strftime('%d%m%Y')
-    #     bk_path = join(FOLDER.EXPORT, f"BK_{date}")
-    #     if not os.path.exists(bk_path):
-    #         os.makedirs(bk_path)
-    #     else:
-    #         shutil.rmtree(bk_path)
-    #         os.makedirs(bk_path)
-    #     _folders = [value for name, value in vars(FOLDER).items() if isinstance(value, str) and not name.startswith('_') and value.endswith(('export/','log/'))]
-    #     for folder in _folders:
-    #         for files in os.listdir(folder):
-    #             if files.endswith((".xlsx",'.log')):
-    #                 shutil.copy2(join(folder, files), bk_path)

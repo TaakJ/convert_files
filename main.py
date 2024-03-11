@@ -1,22 +1,25 @@
-import argparse
 import logging
 from datetime import datetime, timedelta
 from run_batch import convert_2_file
+from setup import setup_parser
 from exception import CustomException
 
-class start_project(convert_2_file):
+
+class setup_project(convert_2_file):
     def __init__(self):
         
         self.setup_folder()
         self.setup_log()
+        
+        kwargs = vars(setup_parser().get_args)
         try:
-            date = datetime.today()
-            logging.info(f"Start Run Batch Date: {date.strftime('%Y-%m-%d')}")
-            super().__init__(date=date)
+            batch_run = kwargs['date'].strftime('%Y-%m-%d')
+            
+            logging.info(f"Start Run Batch Date: {batch_run}")
+            super().__init__(kwargs=kwargs)
+            
         except CustomException as errors:
-            
             logging.error("Error Exception")
-            
             while True:
                 try:
                     msg_err = next(errors)
@@ -24,9 +27,10 @@ class start_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            logging.info(f"Stop Batch Date {date.strftime('%Y-%m-%d')}\n")
-        self.clear_folder()
+            logging.info(f"Stop Batch Date {batch_run}\n")
             
+        self.clear_folder()
+        
 if __name__ == "__main__":
-    start_project()
+    setup_project()
     
