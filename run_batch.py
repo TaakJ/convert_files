@@ -6,7 +6,7 @@ import numpy as np
 from pathlib import Path
 from verify_data import validate_files
 from exception import CustomException
-from datetime import timedelta, datetime
+from datetime import datetime
 from setup import Folder
 from datetime import datetime
 import openpyxl
@@ -28,7 +28,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
-        # self.write_data_to_target_file()
+        self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -80,11 +80,10 @@ class convert_2_file(validate_files):
         logging.info("Mock Data")
 
         def wrapper_mock_data(*args):
-            now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate','LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
-                        [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -172,7 +171,8 @@ class convert_2_file(validate_files):
                     ## write rows to tmp files.
                     logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
                     status = self.wirte_rows(start_rows, sheet, new_data)
-                    workbook.move_sheet(workbook.active, offset = -sheet_num)
+                    ## save files.
+                    workbook.move_sheet(workbook.active, offset=-sheet_num)
                     workbook.save(tmp_name)
 
                     key.update({'sheet_name': sheet_name,'status': status})
@@ -185,12 +185,16 @@ class convert_2_file(validate_files):
                 raise CustomException(errors=self.__log)
 
     def wirte_rows(self, start_rows, sheet, new_data):
+        
+        max_rows = max(new_data, default=0)
+        logging.info(f"Data for write: {max_rows}. rows")
+        
         try:
             # write header
             header =  [columns for columns in new_data[start_rows].keys()]
             sheet.append(header)
             # write data
-            while start_rows <= max(new_data):
+            while start_rows <= max_rows:
                 for recoreded in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'recoreded']:
                     for idx, values in enumerate(new_data[start_rows].values(), 1):
                         ## Removed
@@ -270,10 +274,11 @@ class convert_2_file(validate_files):
 
                     except Exception as err:
                         key.update({'errors': err})
-
-                    ## write data to target files.
+                        
+                    # write data to target files.
                     logging.info(f"Write mode: {self.mode}.")
-                    while start_rows <= max(new_data):
+                    max_rows = max(new_data, default=0)
+                    while start_rows <= max_rows:
                         for idx, columns in enumerate(new_data[start_rows].keys(), 1):
                             if columns == 'recoreded':
                                 if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
@@ -291,7 +296,7 @@ class convert_2_file(validate_files):
                             logging.info(show)
                         start_rows += 1
                     remove_row_empty(sheet)
-                    
+                    ## save files.
                     workbook.save(target_name)
                     status = "successed"
 

@@ -8,7 +8,7 @@ class setup_project(convert_2_file):
     def __init__(self):
         
         setup_folder()
-        # setup_log()
+        setup_log()
         try:
             args = setup_parser().parsed_params
             logging.info(f"Start Run Batch Date: {args.batch_date}")
