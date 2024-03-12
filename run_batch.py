@@ -111,7 +111,7 @@ class convert_2_file(validate_files):
                 else:
                     logging.info(f"Read Text files: '{full_path}'.")
                     clean_data = self.generate_text_data(full_path=full_path)
-                    
+
                 status = "successed"
                 key.update({'data': clean_data, 'status': status})
 
@@ -120,7 +120,7 @@ class convert_2_file(validate_files):
 
             if "errors" in key:
                 raise CustomException(errors=self.__log)
-            
+
         return self.__log
 
     def write_data_to_tmp_file(self):
@@ -148,7 +148,7 @@ class convert_2_file(validate_files):
                         workbook.active = sheet_num
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['recoreded'] != "Removed"]
-                        
+
                         ## compare new data with tmp data
                         new_data = self.validation_data(tmp_df, new_df)
 
@@ -168,8 +168,8 @@ class convert_2_file(validate_files):
                         sheet_num = 1
                         sheet.title = sheet_name
 
-                    ## write rows to tmp files.
                     logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
+                    ## write rows to tmp files.
                     status = self.wirte_rows(start_rows, sheet, new_data)
                     ## save files.
                     workbook.move_sheet(workbook.active, offset=-sheet_num)
@@ -185,27 +185,28 @@ class convert_2_file(validate_files):
                 raise CustomException(errors=self.__log)
 
     def wirte_rows(self, start_rows, sheet, new_data):
-        
+
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
-        
+
         try:
-            # write header
+            # write header.
             header =  [columns for columns in new_data[start_rows].keys()]
             sheet.append(header)
-            # write data
+            # write data.
             while start_rows <= max_rows:
                 for recoreded in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'recoreded']:
                     for idx, values in enumerate(new_data[start_rows].values(), 1):
-                        ## Removed
+                        ## Removed.
                         if start_rows in self.skip_rows and recoreded == "Removed":
                             sheet.cell(row=start_rows, column=idx).value = values
                             sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
                             show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
-                        ## Updated/ Inserted
+                        ## Updated/ Inserted.
                         elif start_rows in self.upsert_rows.keys() and recoreded in ["Inserted", "Updated"]:
                             sheet.cell(row=start_rows, column=idx).value = values
                             show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
+                        ## No Change.
                         else:
                             sheet.cell(row=start_rows, column=idx).value = values
                             show = f"No Change Rows: ({start_rows}) in Tmp files."
@@ -216,7 +217,7 @@ class convert_2_file(validate_files):
 
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
-        
+
         return status
 
     def write_data_to_target_file(self):
@@ -224,27 +225,31 @@ class convert_2_file(validate_files):
         logging.info("Write Data to Target files..")
 
         target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
-        workbook = openpyxl.load_workbook(target_name, data_only=True)
+        workbook = openpyxl.load_workbook(target_name)
         get_sheet = workbook.get_sheet_names()
         sheet = workbook.get_sheet_by_name(get_sheet[0])
-        workbook.active
+        # workbook.active
 
         status = "failed"
         start_rows = 2
 
         def overwrite_row(sheet):
             path = target_name.rsplit('.', 1)[0]
-            re_name = f"{path}_{self.batch_date.strftime('%d%m%d')}.xlsx"
+            re_name = f"{path}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
             workbook = openpyxl.Workbook()
             workbook.active
             workbook.title = sheet
+            validate_row(sheet, 'truncate')
             return re_name
 
-        def remove_row_empty(sheet):
+        def validate_row(sheet, *args):
             for row in sheet.iter_rows():
                 if not all(cell.value for cell in row):
                     sheet.delete_rows(row[0].row, 1)
-                    remove_row_empty(sheet)
+                    validate_row(sheet)
+                else:
+                    status = sheet.delete_rows(row[0].row + 1, 1) if args else 'successed'
+            return status
 
         for key in self.__log:
             try:
@@ -266,26 +271,35 @@ class convert_2_file(validate_files):
                             new_data = self.append_target_data(select_date, target_df, tmp_df)
                         else:
                             self.mode = "overwrite"
+                            tmp_df['recoreded'] = self.mode
                             tmp_df.index += start_rows
                             new_data = tmp_df.to_dict('index')
+                            
+                            ## update upsert_rows / skip_rows
+                            self.upsert_rows = new_data
+                            # self.skip_rows = []
+
                             target_name = overwrite_row(sheet)
 
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
                         key.update({'errors': err})
-                        
-                    # write data to target files.
+
                     logging.info(f"Write mode: {self.mode}.")
+                    ## write data to target files.
                     max_rows = max(new_data, default=0)
                     while start_rows <= max_rows:
                         for idx, columns in enumerate(new_data[start_rows].keys(), 1):
                             if columns == 'recoreded':
-                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
+                                ## Updated/ Inserted.
+                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "overwrite"]:
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
+                                ## Removed.
                                 elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
                                     sheet.delete_rows(start_rows, sheet.max_row)
+                                ## No Change.
                                 else:
                                     show = f"No Change Rows: ({start_rows}) in Target files."
                             else:
@@ -295,10 +309,10 @@ class convert_2_file(validate_files):
                                 continue
                             logging.info(show)
                         start_rows += 1
-                    remove_row_empty(sheet)
+
+                    status = validate_row(sheet)
                     ## save files.
                     workbook.save(target_name)
-                    status = "successed"
 
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")

@@ -57,7 +57,7 @@ class setup_parser:
     def __init__(self):
         
         self.parser = argparse.ArgumentParser()
-        self.add_arguments()
+        self.set_arguments()
         self.parsed_params = self.parser.parse_args()
 
     @staticmethod
@@ -82,7 +82,7 @@ class setup_parser:
             }
         ]
         
-    def add_arguments(self):
+    def set_arguments(self):
         # add arguments
         for args in self.get_args_list():
             short_name = args.get(ArgumentParams.SHORT_NAME)

@@ -23,9 +23,9 @@ class setup_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            ''
+            'continue'
             # logging.info(f"Stop Batch Date {args.batch_date}\n")     
-        clear_folder()
+        # clear_folder()
         
 if __name__ == "__main__":
     setup_project()

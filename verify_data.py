@@ -132,7 +132,7 @@ class validate_files:
         for idx in union_index:
             if idx not in self.skip_rows:
                 
-                changed_value = {}
+                _value = {}
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'changed'] != 14:
                         if diff_df.loc[idx, 'changed'] <= 1:
@@ -141,14 +141,14 @@ class validate_files:
                             diff_df.loc[idx, 'recoreded'] = "No_changed"
                         else:
                             if diff[1][idx] != new[1][idx]:
-                                changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-                            self.upsert_rows[start_rows + idx] = changed_value
+                                _value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
+                            self.upsert_rows[start_rows + idx] = _value
                             ## Updated rows
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'recoreded'] = "Updated"
                     else:
-                        changed_value.update({diff[0]: f"{new[1][idx]}"})
-                        self.upsert_rows[start_rows + idx] = changed_value
+                        _value.update({diff[0]: f"{new[1][idx]}"})
+                        self.upsert_rows[start_rows + idx] = _value
                         ## Inserted rows
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'recoreded'] = "Inserted"
