@@ -16,19 +16,19 @@ from openpyxl.styles import Font
 class convert_2_file(validate_files):
     def __init__(self, **kwargs):
         super().__init__()
-        
+
         self.__dict__.update(kwargs)
-        
+
         for key, value in self.__dict__.items():
             setattr(self, key, value)
-        
-        self.__log = []    
+
+        self.__log = []
         self.date = datetime.now()
-        
+
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -41,7 +41,7 @@ class convert_2_file(validate_files):
     def check_success_files(func):
         def wrapper_success_files(*args):
 
-            logging.info('Check Success files..')
+            logging.info("Check Success files..")
 
             success_file = []
             for key in func(*args):
@@ -49,14 +49,14 @@ class convert_2_file(validate_files):
                 full_path = Folder.RAW + filename
 
                 if glob.glob(full_path, recursive=True):
-                    status = 'successed'
+                    status = "successed"
                     success_file.append(status)
                 else:
-                    status = 'missing'
+                    status = "missing"
                     success_file.append(status)
                 key.update({'full_path': full_path, 'status': status})
 
-            if success_file.__contains__('missing'):
+            if success_file.__contains__("missing"):
                 raise CustomException(errors=func(*args))
             else:
                 logging.info(f"File found count {len(success_file)} status: successed.")
@@ -82,9 +82,9 @@ class convert_2_file(validate_files):
         def wrapper_mock_data(*args):
             now = datetime.now()
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
-                        'CreateDate',	'LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
+                        'CreateDate','LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
-                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -97,9 +97,9 @@ class convert_2_file(validate_files):
     @mock_data
     def get_data_files(self):
 
-        logging.info('Get Data from files..')
+        logging.info("Get Data from files..")
 
-        status = 'failed'
+        status = "failed"
         for key in self.__log:
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
@@ -112,14 +112,16 @@ class convert_2_file(validate_files):
                 else:
                     logging.info(f"Read Text files: '{full_path}'.")
                     clean_data = self.generate_text_data(full_path=full_path)
-                status = 'successed'
+                    
+                status = "successed"
                 key.update({'data': clean_data, 'status': status})
 
             except Exception as err:
                 key.update({'errors': err})
 
-            if 'errors' in key:
+            if "errors" in key:
                 raise CustomException(errors=self.__log)
+            
         return self.__log
 
     def write_data_to_tmp_file(self):
@@ -128,14 +130,14 @@ class convert_2_file(validate_files):
 
         tmp_name = f"{Folder.TMP}DD_{self.batch_date.strftime('%d%m%Y')}.xlsx"
         workbook = openpyxl.Workbook()
-        status = 'failed'
+        status = "failed"
         start_rows = 2
 
         for key in self.__log:
             try:
-                if key['source'] == 'Target_file':
+                if key['source'] == "Target_file":
                     new_df = pd.DataFrame( key['data'])
-                    new_df['recoreded'] = 'Inserted'
+                    new_df['recoreded'] = "Inserted"
                     key.update({'full_path': tmp_name, 'status': status})
 
                     try:
@@ -143,17 +145,16 @@ class convert_2_file(validate_files):
                         workbook = openpyxl.load_workbook(tmp_name)
                         get_sheet = workbook.get_sheet_names()
                         sheet_num = len(get_sheet)
-                        sheet_name = f'RUN_TIME_{sheet_num}'
+                        sheet_name = f"RUN_TIME_{sheet_num}"
                         workbook.active = sheet_num
-
-                        ## read tmp files
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
+                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != "Removed"]
+                        
                         ## compare new data with tmp data
                         new_data = self.validation_data(tmp_df, new_df)
 
                         ## genarate apeend sheet tmp files.
-                        sheet_name = f'RUN_TIME_{sheet_num + 1}'
+                        sheet_name = f"RUN_TIME_{sheet_num + 1}"
                         sheet = workbook.create_sheet(sheet_name)
 
                     except FileNotFoundError:
@@ -162,8 +163,8 @@ class convert_2_file(validate_files):
                         new_data = new_df.to_dict('index')
                         self.upsert_rows = new_data
 
-                        ## genarate shett tmp files on first time.
-                        sheet_name = 'RUN_TIME_1'
+                        ## genarate sheet tmp files on first time.
+                        sheet_name = "RUN_TIME_1"
                         sheet = workbook.worksheets[0]
                         sheet_num = 1
                         sheet.title = sheet_name
@@ -180,7 +181,7 @@ class convert_2_file(validate_files):
             except Exception as err:
                 key.update({'errors': err})
 
-            if 'errors' in key:
+            if "errors" in key:
                 raise CustomException(errors=self.__log)
 
     def wirte_rows(self, start_rows, sheet, new_data):
@@ -193,12 +194,12 @@ class convert_2_file(validate_files):
                 for recoreded in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'recoreded']:
                     for idx, values in enumerate(new_data[start_rows].values(), 1):
                         ## Removed
-                        if start_rows in self.skip_rows and recoreded == 'Removed':
+                        if start_rows in self.skip_rows and recoreded == "Removed":
                             sheet.cell(row=start_rows, column=idx).value = values
                             sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
                             show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
                         ## Updated/ Inserted
-                        elif start_rows in self.upsert_rows.keys() and recoreded in ['Inserted', 'Updated']:
+                        elif start_rows in self.upsert_rows.keys() and recoreded in ["Inserted", "Updated"]:
                             sheet.cell(row=start_rows, column=idx).value = values
                             show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
                         else:
@@ -207,10 +208,11 @@ class convert_2_file(validate_files):
                 logging.info(show)
                 start_rows += 1
 
-            status = 'successed'
+            status = "successed"
 
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
+        
         return status
 
     def write_data_to_target_file(self):
@@ -218,8 +220,21 @@ class convert_2_file(validate_files):
         logging.info("Write Data to Target files..")
 
         target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
-        status = 'failed'
+        workbook = openpyxl.load_workbook(target_name, data_only=True)
+        get_sheet = workbook.get_sheet_names()
+        sheet = workbook.get_sheet_by_name(get_sheet[0])
+        workbook.active
+
+        status = "failed"
         start_rows = 2
+
+        def overwrite_row(sheet):
+            path = target_name.rsplit('.', 1)[0]
+            re_name = f"{path}_{self.batch_date.strftime('%d%m%d')}.xlsx"
+            workbook = openpyxl.Workbook()
+            workbook.active
+            workbook.title = sheet
+            return re_name
 
         def remove_row_empty(sheet):
             for row in sheet.iter_rows():
@@ -229,44 +244,41 @@ class convert_2_file(validate_files):
 
         for key in self.__log:
             try:
-                if key['source'] == 'Target_file':
+                if key['source'] == "Target_file":
                     try:
-                        ## read target file
+                        ## read target file.
                         target_df = pd.read_excel(target_name)
-                        target_df['recoreded'] = 'Inserted'
+                        target_df['recoreded'] = "Inserted"
 
-                        ## read tmp file
+                        ## read tmp file.
                         tmp_name = key['full_path']
                         sheet_name = key['sheet_name']
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != 'Removed']
+                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != "Removed"]
 
-                        ## compare data tmp data with target data
-                        if not target_df.empty:
+                        if self.mode == "append":
                             select_date = tmp_df['CreateDate'].unique()
+                            # ## compare data tmp data with target data.
                             new_data = self.append_target_data(select_date, target_df, tmp_df)
                         else:
-                            tmp_df = tmp_df.to_dict('index')
+                            self.mode = "overwrite"
                             tmp_df.index += start_rows
-                            new_data = tmp_df
+                            new_data = tmp_df.to_dict('index')
+                            target_name = overwrite_row(sheet)
 
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
                         key.update({'errors': err})
 
-                    ## write data to target file
-                    workbook = openpyxl.load_workbook(target_name)
-                    get_sheet = workbook.get_sheet_names()
-                    sheet = workbook.get_sheet_by_name(get_sheet[0])
-                    workbook.active
-
+                    ## write data to target files.
+                    logging.info(f"Write mode: {self.mode}.")
                     while start_rows <= max(new_data):
                         for idx, columns in enumerate(new_data[start_rows].keys(), 1):
                             if columns == 'recoreded':
-                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ['Updated', 'Inserted']:
+                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
-                                elif start_rows in self.skip_rows and new_data[start_rows][columns] == 'Removed':
+                                elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
                                     sheet.delete_rows(start_rows, sheet.max_row)
                                 else:
@@ -278,15 +290,16 @@ class convert_2_file(validate_files):
                                 continue
                             logging.info(show)
                         start_rows += 1
-
                     remove_row_empty(sheet)
+                    
                     workbook.save(target_name)
-                    status = 'successed'
+                    status = "successed"
+
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
 
             except Exception as err:
                 key.update({'errors': err})
 
-        if 'errors' in key:
+        if "errors" in key:
             raise CustomException(errors=self.__log)

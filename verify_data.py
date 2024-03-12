@@ -20,7 +20,7 @@ class validate_files:
             while True:
                 try:
                     for sheets, data in next(clean_lines).items():
-                        if not all(dup == data[0] for dup in data) and not data.__contains__('Centralized User Management : User List.'):
+                        if not all(dup == data[0] for dup in data) and not data.__contains__("Centralized User Management : User List."):
                             if sheets not in clean_data:
                                 clean_data[sheets] = [data]
                             else:
@@ -36,7 +36,7 @@ class validate_files:
         logging.info("Cleansing Data in Excel files to Dataframe..")
 
         workbook = xlrd.open_workbook(full_path);
-        sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != 'StyleSheet']
+        sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != "StyleSheet"]
 
         clean_data = {}
         for sheets in sheet_list:
@@ -56,7 +56,7 @@ class validate_files:
                     lines = []
                     for sheets, data in  next(clean_lines).items():
                         # LDS-P_USERDETAIL
-                        if sheets == 'LDS-P_USERDETAIL':
+                        if sheets == "LDS-P_USERDETAIL":
                             if rows == 0:
                                 lines = " ".join(data).split(' ') # column
                             else:
@@ -67,7 +67,7 @@ class validate_files:
                                     else:
                                         lines.append(value)
                         ## DOCIMAGE
-                        elif sheets == 'DOCIMAGE':
+                        elif sheets == "DOCIMAGE":
                             if rows == 1:
                                 lines = " ".join(data).split(' ') # column
                             elif rows > 1:
@@ -78,15 +78,17 @@ class validate_files:
                                     else:
                                         lines.append(value)
                         ## ADM
-                        elif sheets == 'ADM':
+                        elif sheets == "ADM":
                             lines = data
                         if sheets not in clean_data:
                             clean_data[sheets] = [lines]
                         else:
                             clean_data[sheets].append(lines)
                     rows += 1
+                    
                 except StopIteration:
                     break
+                
             return clean_data
         return wrapper_clean_lines
 
@@ -111,7 +113,7 @@ class validate_files:
 
     def validation_data(self, diff_df, new_df):
 
-        logging.info('Verify Changed information..')
+        logging.info("Verify Changed information..")
 
         if len(diff_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
@@ -132,29 +134,30 @@ class validate_files:
         start_rows = 2
         for idx in union_index:
             if idx not in self.skip_rows:
+                
                 changed_value = {}
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'changed'] != 14:
                         if diff_df.loc[idx, 'changed'] <= 1:
                             ## No_changed rows
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
-                            diff_df.loc[idx, 'recoreded'] = 'No_changed'
+                            diff_df.loc[idx, 'recoreded'] = "No_changed"
                         else:
                             if diff[1][idx] != new[1][idx]:
                                 changed_value.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
                             self.upsert_rows[start_rows + idx] = changed_value
                             ## Updated rows
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
-                            diff_df.loc[idx, 'recoreded'] = 'Updated'
+                            diff_df.loc[idx, 'recoreded'] = "Updated"
                     else:
                         changed_value.update({diff[0]: f"{new[1][idx]}"})
                         self.upsert_rows[start_rows + idx] = changed_value
                         ## Inserted rows
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
-                        diff_df.loc[idx, 'recoreded'] = 'Inserted'
+                        diff_df.loc[idx, 'recoreded'] = "Inserted"
             else:
                 ## Removed rows
-                diff_df.loc[idx, 'recoreded'] = 'Removed'
+                diff_df.loc[idx, 'recoreded'] = "Removed"
 
         self.skip_rows = [start_rows + row for row in self.skip_rows]
         diff_df = diff_df.drop(['changed'], axis=1)
