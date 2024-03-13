@@ -118,19 +118,20 @@ class validate_files:
         if len(diff_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
         
-        ## reset index data
+        ## reset index data.
         union_index = np.union1d(diff_df.index, new_df.index)
-        
-        ## target / tmp data
+        ## target / tmp data.
         diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
-        
-        ## new data
+        ## new data.
         new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
-        
-        # compare data rows by rows
+        # compare data rows by rows.
         diff_df['count_change'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
         
+        def format_record(recorded):
+            return  "{" + "\n".join("{!r}: {!r},".format(columns, values)\
+                for columns, values in recorded.items()) + "}"
+            
         start_rows = 2
         for idx in union_index:
             if idx not in self.skip_rows:
@@ -139,33 +140,31 @@ class validate_files:
                 for diff, new in zip(diff_df.items(), new_df.items()):
                     if diff_df.loc[idx, 'count_change'] != 14:
                         if diff_df.loc[idx, 'count_change'] <= 1:
-                            ## No_changed rows
+                            ## No_changed rows.
                             diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
                             diff_df.loc[idx, 'remark'] = "No_changed"
                         else:
-                            if diff[1][idx] != new[1][idx]:
+                            ## Updated rows.
+                            if diff[1][idx] != new[1][idx]: 
                                 recorded.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-                            self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
-                                for columns, values in recorded.items()) + "}"
-                            ## Updated rows
                             diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                             diff_df.loc[idx, 'remark'] = "Updated"
                     else:
-                        recorded.update({diff[0]:new[1][idx]})
-                        self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
-                            for columns, values in recorded.items()) + "}"
-                        ## Inserted rows
+                        ## Inserted rows.
+                        recorded.update({diff[0]: new[1][idx]})
                         diff_df.at[idx, diff[0]] = new[1].iloc[idx]
                         diff_df.loc[idx, 'remark'] = "Inserted"
+                        
+                if recorded != {}:
+                    self.upsert_rows[start_rows + idx] = format_record(recorded)
             else:
-                ## Removed rows
+                ## Removed rows.
                 diff_df.loc[idx, 'remark'] = "Removed"
-        
-        self.skip_rows = [idx + start_rows for idx in self.skip_rows]
+                self.skip_rows = [self.skip_rows[i] + start_rows for i in range(len(self.skip_rows))]
+                
         diff_df = diff_df.drop(['count_change'], axis=1)
         diff_df.index += start_rows 
         new_data = diff_df.to_dict('index')
-        
         return new_data
 
     def customize_data(self, select_date, target_df, tmp_df):
@@ -174,30 +173,26 @@ class validate_files:
         
         ## unique_date.
         unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
-        
         ## other_date.
         other_date = target_df[~target_df['CreateDate'].isin(select_date)].iloc[:, :-1].to_dict('index')
         max_rows = max(other_date, default=0)
-        
         ## compare data target / tmp.
         compare_data = self.validation_data(unique_date, tmp_df)
-        
         ## add value to other_date.
         other_date = other_date | {max_rows + key:  {**values, **{'upsert_rows': key}} \
             if key in self.upsert_rows or key in self.skip_rows \
                 else values for key, values in compare_data.items()}
         
         ## sorted date order.
+        i = 0
         start_row = 2
         new_data = {start_row + idx : values for idx, values in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
-        idx = 0
         for rows, columns in new_data.items():
             if columns.get('upsert_rows'):
                 if columns['upsert_rows'] in self.upsert_rows:
                     self.upsert_rows[f"{rows}"] = self.upsert_rows.pop(columns['upsert_rows'])
                 elif columns['upsert_rows'] in self.skip_rows:
-                    self.skip_rows[idx] = rows
-                    idx += 1
+                    self.skip_rows[i] = rows
+                    i += 1
                 columns.pop('upsert_rows')
-                
         return new_data
