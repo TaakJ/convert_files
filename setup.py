@@ -78,7 +78,7 @@ class setup_parser:
                 ArgumentParams.DESCRIPTION : 'write mode: overwrite, append',
                 ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : True,
-                ArgumentParams.DEFAULT: 'append'
+                ArgumentParams.DEFAULT: 'Append'
             }
         ]
         

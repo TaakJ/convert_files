@@ -28,7 +28,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -136,7 +136,7 @@ class convert_2_file(validate_files):
             try:
                 if key['source'] == "Target_file":
                     new_df = pd.DataFrame( key['data'])
-                    new_df['recoreded'] = "Inserted"
+                    new_df['remark'] = "Inserted"
                     key.update({'full_path': tmp_name, 'status': status})
 
                     try:
@@ -147,36 +147,33 @@ class convert_2_file(validate_files):
                         sheet_name = f"RUN_TIME_{sheet_num}"
                         workbook.active = sheet_num
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != "Removed"]
-
-                        ## compare new data with tmp data
-                        new_data = self.validation_data(tmp_df, new_df)
-
+                        tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
+                        
                         ## genarate apeend sheet tmp files.
                         sheet_name = f"RUN_TIME_{sheet_num + 1}"
                         sheet = workbook.create_sheet(sheet_name)
 
                     except FileNotFoundError:
-                        ## get new data
-                        new_df.index += start_rows
-                        new_data = new_df.to_dict('index')
-                        self.upsert_rows = new_data
-
+                        ## force emtry row
+                        # tmp_df = new_df.drop(new_df.index)
+                        
                         ## genarate sheet tmp files on first time.
                         sheet_name = "RUN_TIME_1"
                         sheet = workbook.worksheets[0]
                         sheet_num = 1
                         sheet.title = sheet_name
 
-                    logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
-                    ## write rows to tmp files.
-                    status = self.wirte_rows(start_rows, sheet, new_data)
-                    ## save files.
-                    workbook.move_sheet(workbook.active, offset=-sheet_num)
-                    workbook.save(tmp_name)
-
-                    key.update({'sheet_name': sheet_name,'status': status})
-                    logging.info(f"Write to Tmp files status: {status}.")
+                    ## compare new data with tmp data
+                    new_data = self.validation_data(tmp_df, new_df)
+                    
+                    ## write to tmp files.
+                    # logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")                
+                    # status = self.wirte_rows(start_rows, sheet, new_data)
+                    
+                    # workbook.move_sheet(workbook.active, offset=-sheet_num)
+                    # workbook.save(tmp_name)
+                    # key.update({'sheet_name': sheet_name,'status': status})
+                    # logging.info(f"Write to Tmp files status: {status}.")
 
             except Exception as err:
                 key.update({'errors': err})
@@ -193,19 +190,20 @@ class convert_2_file(validate_files):
             # write header.
             header =  [columns for columns in new_data[start_rows].keys()]
             sheet.append(header)
-            # write data.
+            
+            ## write data.
             while start_rows <= max_rows:
-                for recoreded in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'recoreded']:
+                for remark in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'remark']:
                     for idx, values in enumerate(new_data[start_rows].values(), 1):
                         ## Removed.
-                        if start_rows in self.skip_rows and recoreded == "Removed":
+                        if start_rows in self.skip_rows and remark == "Removed":
                             sheet.cell(row=start_rows, column=idx).value = values
                             sheet.cell(row=start_rows, column=idx).font = Font(bold=True, strike=True, color="00FF0000")
-                            show = f"{recoreded} Rows: ({start_rows}) in Tmp files."
+                            show = f"{remark} Rows: ({start_rows}) in Tmp files."
                         ## Updated/ Inserted.
-                        elif start_rows in self.upsert_rows.keys() and recoreded in ["Inserted", "Updated"]:
+                        elif start_rows in self.upsert_rows.keys() and remark in ["Inserted", "Updated"]:
                             sheet.cell(row=start_rows, column=idx).value = values
-                            show = f"{recoreded} Rows: ({start_rows}) in Tmp files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
+                            show = f"{remark} Rows: ({start_rows}) in Tmp files. Record Changed: {self.upsert_rows[start_rows]}"
                         ## No Change.
                         else:
                             sheet.cell(row=start_rows, column=idx).value = values
@@ -228,28 +226,16 @@ class convert_2_file(validate_files):
         workbook = openpyxl.load_workbook(target_name)
         get_sheet = workbook.get_sheet_names()
         sheet = workbook.get_sheet_by_name(get_sheet[0])
-        # workbook.active
+        workbook.active
 
         status = "failed"
         start_rows = 2
-
-        def overwrite_row(sheet):
-            path = target_name.rsplit('.', 1)[0]
-            re_name = f"{path}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
-            workbook = openpyxl.Workbook()
-            workbook.active
-            workbook.title = sheet
-            validate_row(sheet, 'truncate')
-            return re_name
-
-        def validate_row(sheet, *args):
+        
+        def remove_row(sheet):
             for row in sheet.iter_rows():
                 if not all(cell.value for cell in row):
                     sheet.delete_rows(row[0].row, 1)
-                    validate_row(sheet)
-                else:
-                    status = sheet.delete_rows(row[0].row + 1, 1) if args else 'successed'
-            return status
+                    remove_row(sheet)
 
         for key in self.__log:
             try:
@@ -257,44 +243,38 @@ class convert_2_file(validate_files):
                     try:
                         ## read target file.
                         target_df = pd.read_excel(target_name)
-                        target_df['recoreded'] = "Inserted"
+                        target_df['remark'] = "Inserted"
 
                         ## read tmp file.
                         tmp_name = key['full_path']
                         sheet_name = key['sheet_name']
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['recoreded'] != "Removed"]
+                        tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
 
-                        if self.mode == "append":
-                            select_date = tmp_df['CreateDate'].unique()
-                            # ## compare data tmp data with target data.
-                            new_data = self.append_target_data(select_date, target_df, tmp_df)
-                        else:
-                            self.mode = "overwrite"
-                            tmp_df['recoreded'] = self.mode
-                            tmp_df.index += start_rows
-                            new_data = tmp_df.to_dict('index')
-                            
-                            ## update upsert_rows / skip_rows
-                            self.upsert_rows = new_data
-                            # self.skip_rows = []
+                        if self.mode != "Append":
+                            ## force emtry row
+                            self.mode = "Overwrite"
+                            target_df = target_df.drop(target_df.index)
 
-                            target_name = overwrite_row(sheet)
+                        ## compare data tmp data with target data.
+                        select_date = tmp_df['CreateDate'].unique()
+                        new_data = self.customize_data(select_date, target_df, tmp_df)
 
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
                         key.update({'errors': err})
 
+                    # write data to target files.
                     logging.info(f"Write mode: {self.mode}.")
-                    ## write data to target files.
                     max_rows = max(new_data, default=0)
+
                     while start_rows <= max_rows:
                         for idx, columns in enumerate(new_data[start_rows].keys(), 1):
-                            if columns == 'recoreded':
+                            if columns == 'remark':
                                 ## Updated/ Inserted.
-                                if start_rows in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "overwrite"]:
-                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files.\r\nRecord Changed: {self.upsert_rows[start_rows]}"
+                                if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "Overwrite"]:
+                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
                                 ## Removed.
                                 elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
                                     show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
@@ -310,9 +290,9 @@ class convert_2_file(validate_files):
                             logging.info(show)
                         start_rows += 1
 
-                    status = validate_row(sheet)
-                    ## save files.
+                    remove_row(sheet)
                     workbook.save(target_name)
+                    status = "successed"
 
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
