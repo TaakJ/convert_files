@@ -111,64 +111,62 @@ class validate_files:
                 clean_data = {sheets: re.sub(r'\W\s+','||',"".join(find_lines).strip()).split('||')}
                 yield clean_data
 
-    def validation_data(self, *diff_df, new_df):
+    def validation_data(self, diff_df, new_df):
 
         logging.info("Verify Changed information..")
-        
-        print(new_df)
 
-        # if len(diff_df.index) > len(new_df.index):
-        #     self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
+        if len(diff_df.index) > len(new_df.index):
+            self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
         
-        # ## reset index data
-        # union_index = np.union1d(diff_df.index, new_df.index)
+        ## reset index data
+        union_index = np.union1d(diff_df.index, new_df.index)
         
-        # ## target / tmp data
-        # diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
+        ## target / tmp data
+        diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
         
-        # ## new data
-        # new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
+        ## new data
+        new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
         
-        # # compare data rows by rows
-        # diff_df['count_change'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
-        #     .apply(lambda x: (x==True).sum(), axis=1)
+        # compare data rows by rows
+        diff_df['count_change'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
+            .apply(lambda x: (x==True).sum(), axis=1)
         
-        # start_rows = 2
-        # for idx in union_index:
-        #     if idx not in self.skip_rows:
+        start_rows = 2
+        for idx in union_index:
+            if idx not in self.skip_rows:
                 
-        #         recorded = {}
-        #         for diff, new in zip(diff_df.items(), new_df.items()):
-        #             if diff_df.loc[idx, 'count_change'] != 14:
-        #                 if diff_df.loc[idx, 'count_change'] <= 1:
-        #                     ## No_changed rows
-        #                     diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
-        #                     diff_df.loc[idx, 'remark'] = "No_changed"
-        #                 else:
-        #                     if diff[1][idx] != new[1][idx]:
-        #                         recorded.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
-        #                     self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
-        #                         for columns, values in recorded.items()) + "}"
-        #                     ## Updated rows
-        #                     diff_df.at[idx, diff[0]] = new[1].iloc[idx]
-        #                     diff_df.loc[idx, 'remark'] = "Updated"
-        #             else:
-        #                 recorded.update({diff[0]:new[1][idx]})
-        #                 self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
-        #                     for columns, values in recorded.items()) + "}"
-        #                 ## Inserted rows
-        #                 diff_df.at[idx, diff[0]] = new[1].iloc[idx]
-        #                 diff_df.loc[idx, 'remark'] = "Inserted"
-        #     else:
-        #         ## Removed rows
-        #         diff_df.loc[idx, 'remark'] = "Removed"
+                recorded = {}
+                for diff, new in zip(diff_df.items(), new_df.items()):
+                    if diff_df.loc[idx, 'count_change'] != 14:
+                        if diff_df.loc[idx, 'count_change'] <= 1:
+                            ## No_changed rows
+                            diff_df.at[idx, diff[0]] = diff[1].iloc[idx]
+                            diff_df.loc[idx, 'remark'] = "No_changed"
+                        else:
+                            if diff[1][idx] != new[1][idx]:
+                                recorded.update({diff[0]: f"{diff[1][idx]} -> {new[1][idx]}"})
+                            self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
+                                for columns, values in recorded.items()) + "}"
+                            ## Updated rows
+                            diff_df.at[idx, diff[0]] = new[1].iloc[idx]
+                            diff_df.loc[idx, 'remark'] = "Updated"
+                    else:
+                        recorded.update({diff[0]:new[1][idx]})
+                        self.upsert_rows[start_rows + idx] = "{" + "\n".join("{!r}: {!r},".format(columns, values)\
+                            for columns, values in recorded.items()) + "}"
+                        ## Inserted rows
+                        diff_df.at[idx, diff[0]] = new[1].iloc[idx]
+                        diff_df.loc[idx, 'remark'] = "Inserted"
+            else:
+                ## Removed rows
+                diff_df.loc[idx, 'remark'] = "Removed"
         
-        # self.skip_rows = [idx + start_rows for idx in self.skip_rows]
-        # diff_df = diff_df.drop(['count_change'], axis=1)
-        # diff_df.index += start_rows 
-        # new_data = diff_df.to_dict('index')
+        self.skip_rows = [idx + start_rows for idx in self.skip_rows]
+        diff_df = diff_df.drop(['count_change'], axis=1)
+        diff_df.index += start_rows 
+        new_data = diff_df.to_dict('index')
         
-        return 'new_data'
+        return new_data
 
     def customize_data(self, select_date, target_df, tmp_df):
 
