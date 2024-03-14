@@ -11,6 +11,7 @@ LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
 class Folder:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
+    TEMPLATE    = join(CURRENT_DIR, "template/")
     TMP         = join(CURRENT_DIR, "tmp/dd_export/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     FILE        = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']

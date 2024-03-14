@@ -1,8 +1,8 @@
-import glob
+import glob, shutil
+from pathlib import Path
 import warnings
 import logging
 import pandas as pd
-from pathlib import Path
 from verify_data import validate_files
 from exception import CustomException
 from datetime import datetime
@@ -10,6 +10,7 @@ from setup import Folder
 from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font
+import shutil
 
 
 class convert_2_file(validate_files):
@@ -27,7 +28,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
-        self.write_data_to_target_file()
+        # self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -82,7 +83,7 @@ class convert_2_file(validate_files):
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate','LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
-                        [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -136,16 +137,19 @@ class convert_2_file(validate_files):
                 if key['source'] == "Target_file":
                     new_df = pd.DataFrame( key['data'])
                     new_df['remark'] = "Inserted"
+                    ## set empty tmp_df.
                     tmp_df = pd.DataFrame(columns=new_df.columns)
+                    
                     key.update({'full_path': tmp_name, 'status': status})
 
                     try:
-                        ## read tmp files
                         workbook = openpyxl.load_workbook(tmp_name)
                         get_sheet = workbook.get_sheet_names()
                         sheet_num = len(get_sheet)
                         sheet_name = f"RUN_TIME_{sheet_num}"
                         workbook.active = sheet_num
+                        
+                        ## read tmp files
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
 
@@ -167,11 +171,11 @@ class convert_2_file(validate_files):
                     logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
                     status = self.wirte_rows(start_rows, sheet, new_data)
                     ## save files.
-                    workbook.move_sheet(workbook.active, offset=-sheet_num)
-                    workbook.save(tmp_name)
+                    # workbook.move_sheet(workbook.active, offset=-sheet_num)
+                    # workbook.save(tmp_name)
 
-                    key.update({'sheet_name': sheet_name,'status': status})
-                    logging.info(f"Write to Tmp files status: {status}.")
+                    # key.update({'sheet_name': sheet_name,'status': status})
+                    # logging.info(f"Write to Tmp files status: {status}.")
 
             except Exception as err:
                 key.update({'errors': err})
@@ -211,93 +215,107 @@ class convert_2_file(validate_files):
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
 
         return status
+    
+    def copy_worksheet(self, source_name, target_name):
+        try:
+            if not glob.glob(target_name, recursive=True):
+                shutil.copyfile(source_name, target_name)
+            status = "successed"
+        except FileNotFoundError as err:
+            raise FileNotFoundError(err)
+        
+        return status
 
+    def remove_row_empty(self, sheet):
+        for row in sheet.iter_rows():
+            if not all(cell.value for cell in row):
+                sheet.delete_rows(row[0].row, 1)
+                self.remove_row_empty(sheet)
+    
     def write_data_to_target_file(self):
 
         logging.info("Write Data to Target files..")
-
+        source_name = f"{Folder.TEMPLATE}Application Data Requirements.xlsx"
         target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
-        workbook = openpyxl.load_workbook(target_name)
-        get_sheet = workbook.get_sheet_names()
-        sheet = workbook.get_sheet_by_name(get_sheet[0])
-        workbook.active
         status = "failed"
         start_rows = 2
-
-        def create_sheet(sheet):
-            path = target_name.rsplit('.', 1)[0]
-            create_name = f"{path}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
-            workbook = openpyxl.Workbook()
-            workbook.active
-            workbook.title = sheet
-            return create_name
-
-        def remove_row_empty(sheet):
-            for row in sheet.iter_rows():
-                if not all(cell.value for cell in row):
-                    sheet.delete_rows(row[0].row, 1)
-                    remove_row_empty(sheet)
-
+        
         for key in self.__log:
             try:
                 if key['source'] == "Target_file":
                     try:
+                        ## check write mode.
+                        if self.mode == "Append": 
+                            status = self.copy_worksheet(source_name, target_name)
+                            if status == "successed":
+                                workbook = openpyxl.load_workbook(target_name)
+                                get_sheet = workbook.get_sheet_names()
+                                sheet = workbook.get_sheet_by_name(get_sheet[0])
+                                workbook.active = sheet
+                        else:
+                            self.mode = "Overwrite"
+                            target_name = f"{Folder.EXPORT}{Path(target_name).stem}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
+                            status = "successed" if glob.glob(target_name, recursive=True) else self.copy_worksheet(source_name, target_name)
+                            
+                            if status == "successed":
+                                workbook = openpyxl.load_workbook(target_name)
+                                get_sheet = workbook.get_sheet_names()
+                                sheet = workbook.get_sheet_by_name(get_sheet[0])
+                                workbook.active = sheet
+                        
                         ## read target file.
-                        target_df = pd.read_excel(target_name)
+                        data = sheet.values
+                        columns = next(data)[0:]
+                        target_df = pd.DataFrame(data, columns=columns)
                         target_df['remark'] = "Inserted"
-
+                        
                         ## read tmp file.
                         tmp_name = key['full_path']
                         sheet_name = key['sheet_name']
                         tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
                         tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
-
-                        if self.mode != "Append":
-                            self.mode = "Overwrite"
-                            target_df = pd.DataFrame(columns=target_df.columns)
-                            target_name = create_sheet(sheet)
-
+                        
                         ## compare data tmp data with target data.
                         select_date = tmp_df['CreateDate'].unique()
-                        new_data = self.customize_data(select_date, target_df, tmp_df)
-
+                        status, new_data = self.customize_data(select_date, target_df, tmp_df)
+                        
                         key.update({'full_path': target_name, 'status': status})
-
+                        
                     except Exception as err:
-                        key.update({'errors': err})
-
+                        raise Exception(err)
+                        
                     ## write data to target files.
-                    logging.info(f"Write mode: {self.mode}. in Terget_files: {target_name}")
-                    max_rows = max(new_data, default=0)
-                    
-                    while start_rows <= max_rows:
-                        for idx, columns in enumerate(new_data[start_rows].keys(), 1):
-                            if columns == 'remark':
-                                if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "Overwrite"]:
-                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
-                                elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
-                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
-                                    sheet.delete_rows(start_rows, sheet.max_row)
+                    logging.info(f"Write mode: {self.mode}. in Terget_files: '{Path(target_name).name}'")        
+                    if status == "successed":
+                        max_rows = max(new_data, default=0)
+                        while start_rows <= max_rows:
+                            for idx, columns in enumerate(new_data[start_rows].keys(), 1):
+                                if columns == 'remark':
+                                    if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "Overwrite"]:
+                                        show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
+                                    elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
+                                        show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
+                                        sheet.delete_rows(start_rows, sheet.max_row)
+                                    else:
+                                        show = f"No Change Rows: ({start_rows}) in Target files."
                                 else:
-                                    show = f"No Change Rows: ({start_rows}) in Target files."
-                            else:
-                                if start_rows in self.skip_rows:
+                                    if start_rows in self.skip_rows:
+                                        continue
+                                    sheet.cell(row=start_rows, column=idx).value = new_data[start_rows][columns]
                                     continue
-                                sheet.cell(row=start_rows, column=idx).value = new_data[start_rows][columns]
-                                continue
-                            logging.info(show)
-                        start_rows += 1
-                    remove_row_empty(sheet)
+                                logging.info(show)
+                            start_rows += 1
                     
                     ## save files.
+                    self.remove_row_empty(sheet)
                     workbook.save(target_name)
-                    status = "successed"
-
+                    status = "compeleted"
+                    
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
 
             except Exception as err:
-                key.update({'errors': err})
+                key.update({'status': status, 'errors': err})
 
         if "errors" in key:
             raise CustomException(errors=self.__log)
