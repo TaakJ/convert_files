@@ -21,6 +21,7 @@ class convert_2_files:
 
         self.__log = []
         self.date = datetime.now()
+        
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
