@@ -4,7 +4,7 @@ class CustomException(Exception):
             setattr(self, key, value)
 
         self.msg_err = self.generate_meg_err()
-
+    
     def __iter__(self):
         return self
 

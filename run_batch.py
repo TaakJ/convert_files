@@ -1,19 +1,16 @@
+from exception import CustomException
 import glob, shutil
 from pathlib import Path
 import warnings
 import logging
 import pandas as pd
-from verify_data import validate_files
-from exception import CustomException
 from datetime import datetime
 from setup import Folder
 from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font
-import shutil
 
-
-class convert_2_file(validate_files):
+class convert_2_files:
     def __init__(self, **kwargs):
         super().__init__()
 
@@ -24,7 +21,6 @@ class convert_2_file(validate_files):
 
         self.__log = []
         self.date = datetime.now()
-
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
@@ -190,7 +186,7 @@ class convert_2_file(validate_files):
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
         start_rows = 2
-        
+
         try:
             # write columns.
             for idx, columns in enumerate(new_data[start_rows].keys(), 1):

@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-class validate_files:
+class method_files:
     def __init__(self):
         self.upsert_rows = {}
         self.skip_rows = []
@@ -135,6 +135,7 @@ class validate_files:
         start_rows = 2
         for idx in union_index:
             if idx not in self.skip_rows:
+                
                 recorded = {}
                 for old_data, new_data in zip(valid_df.items(), new_df.items()):
                     if valid_df.loc[idx, 'count_change'] != 14:
