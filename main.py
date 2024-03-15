@@ -5,14 +5,15 @@ from exception import CustomException
 from datetime import datetime
 
 class setup_project(convert_2_file):
+    
     def __init__(self):
-        
         setup_folder()
         setup_log()
+        
         try:
-            args = setup_parser().parsed_params
-            logging.info(f"Start Run Batch Date: {args.batch_date}")
-            super().__init__(**vars(args))
+            params = setup_parser().parsed_params
+            logging.info(f"Start Run Batch Date: {params.batch_date}")
+            super().__init__(**vars(params))
             
         except CustomException as errors:
             logging.error("Error Exception")
@@ -22,9 +23,9 @@ class setup_project(convert_2_file):
                     logging.error(msg_err)
                 except StopIteration:
                     break
-        finally:
-            logging.info(f"Stop Batch Date")     
-        clear_folder()
+        logging.info(f"Stop Batch Date\n\n")
+        if not params.open: 
+            clear_folder()
         
 if __name__ == "__main__":
     setup_project()

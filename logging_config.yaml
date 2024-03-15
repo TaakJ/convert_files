@@ -16,9 +16,10 @@ handlers:
     level: DEBUG
     formatter: verbose
     backupCount: 0
+    # mode: w
     filename: ./tmp/log/
 root: 
   level: INFO
   handlers:
-    - console
-    # - file
+    #- console
+    - file

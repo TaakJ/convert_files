@@ -26,34 +26,6 @@ class ArgumentParams:
     TYPE = 'type'
     CHOICES = 'choices'
 
-def setup_log():
-    config_yaml  = None
-    date = datetime.today().strftime("%d%m%Y")
-    log_name = f'log_{date}.log'
-
-    if os.path.exists(LOGGER_CONFIG):
-        with open(LOGGER_CONFIG, 'rb') as logger:
-            config_yaml  = yaml.safe_load(logger.read())
-            for i in (config_yaml["handlers"].keys()):
-                if 'filename' in config_yaml['handlers'][i]:
-                    log_path = config_yaml["handlers"][i]["filename"]
-                    log_file = log_path + log_name
-            config_yaml["handlers"][i]["filename"] = log_file
-
-            logging.config.dictConfig(config_yaml)
-    else:
-        raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist.")
-
-def setup_folder():
-    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_')]
-    for folder in _folders:
-        os.makedirs(folder, exist_ok=True)
-
-def clear_folder():
-    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith('_') and value.endswith('dd_export/')]
-    for folder in _folders:
-        shutil.rmtree(folder)
-
 class setup_parser:
     def __init__(self):
         
@@ -65,18 +37,26 @@ class setup_parser:
     def get_args_list():
         return [
             {
-                ArgumentParams.SHORT_NAME : '-b',
-                ArgumentParams.NAME : '--batch_date',
-                ArgumentParams.DESCRIPTION : 'format YYYY-MM-DD',
+                ArgumentParams.SHORT_NAME : "-b",
+                ArgumentParams.NAME : "--batch_date",
+                ArgumentParams.DESCRIPTION : "format YYYY-MM-DD",
                 ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : False,
-                ArgumentParams.TYPE : lambda d: datetime.strptime(d, '%Y-%m-%d').date(),
+                ArgumentParams.TYPE : lambda d: datetime.strptime(d, "%Y-%m-%d").date(),
                 ArgumentParams.DEFAULT : datetime.today().date()
             },
             {
-                ArgumentParams.SHORT_NAME : '-w',
-                ArgumentParams.NAME : '--mode',
-                ArgumentParams.DESCRIPTION : 'write mode: overwrite, append',
+                ArgumentParams.SHORT_NAME : "-o",
+                ArgumentParams.NAME : "--open",
+                ArgumentParams.DESCRIPTION : "-o: not clear tmp",
+                ArgumentParams.REQUIRED : False,
+                ArgumentParams.ISFLAG : True,
+                ArgumentParams.DEFAULT: False
+            },
+            {
+                ArgumentParams.SHORT_NAME : "-w",
+                ArgumentParams.NAME : "--mode",
+                ArgumentParams.DESCRIPTION : "-w: overwrite",
                 ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : True,
                 ArgumentParams.DEFAULT: 'Append'
@@ -93,15 +73,43 @@ class setup_parser:
             default = args.get(ArgumentParams.DEFAULT)
             choices = args.get(ArgumentParams.CHOICES)
             _type = args.get(ArgumentParams.TYPE)
-            action = 'store_true' if args.get(ArgumentParams.ISFLAG) else 'store'
+            action = "store_true" if args.get(ArgumentParams.ISFLAG) else "store"
             
             if _type:
                 self.parser.add_argument(short_name, name, help=description, required=required,
                                     default=default, type=_type)
             else:
-                if action == 'store_true':
+                if action == "store_true":
                     self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action)
                 else:
                     self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action, choices=choices)
+
+def setup_log():
+    config_yaml  = None
+    date = datetime.today().strftime("%d%m%Y")
+    log_name = f'log_{date}.log'
+
+    if os.path.exists(LOGGER_CONFIG):
+        with open(LOGGER_CONFIG, 'rb') as logger:
+            config_yaml  = yaml.safe_load(logger.read())
+            for i in (config_yaml["handlers"].keys()):
+                if "filename" in config_yaml['handlers'][i]:
+                    log_path = config_yaml["handlers"][i]["filename"]
+                    log_file = log_path + log_name
+            config_yaml["handlers"][i]["filename"] = log_file
+
+            logging.config.dictConfig(config_yaml)
+    else:
+        raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist.")
+
+def setup_folder():
+    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_")]
+    for folder in _folders:
+        os.makedirs(folder, exist_ok=True)
+
+def clear_folder():
+    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_") and value.endswith("dd_export/")]
+    for folder in _folders:
+        shutil.rmtree(folder)
