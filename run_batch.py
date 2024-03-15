@@ -28,7 +28,7 @@ class convert_2_file(validate_files):
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
-        # self.write_data_to_target_file()
+        self.write_data_to_target_file()
 
     @property
     def logging(self):
@@ -145,7 +145,7 @@ class convert_2_file(validate_files):
                         sheet_name = f"RUN_TIME_{sheet_num - 1}"
                         sheet = workbook.get_sheet_by_name(sheet_name)
                         workbook.active = sheet_num
-                        
+
                     except FileNotFoundError:
                         ## copy files from template.
                         status = self.copy_worksheet(source_name, tmp_name)
@@ -154,23 +154,22 @@ class convert_2_file(validate_files):
                         sheet_name = "RUN_TIME_1"
                         sheet_num = 1
                         sheet.title = sheet_name
-                    
+
                     logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
-                    
+
                     # read tmp files.
                     data = sheet.values
                     columns = next(data)[0:]
                     tmp_df = pd.DataFrame(data, columns=columns)
-                    
+
                     if status != "successed":
                         tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
-                        
+                        ## create new shhet.
                         sheet_name = f"RUN_TIME_{sheet_num}"
                         sheet = workbook.create_sheet(sheet_name)
                     else:
-                        tmp_df['remark'] = "Inserted" 
-                        
-                    ## compare tmp_df with new_df.
+                        tmp_df['remark'] = "Inserted"
+
                     new_data = self.validation_data(tmp_df, new_df)
                     ## write to tmp files.
                     status = self.write_worksheet(sheet, new_data)
@@ -190,7 +189,6 @@ class convert_2_file(validate_files):
 
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
-        status = "failed"
         start_rows = 2
         
         try:
@@ -213,9 +211,9 @@ class convert_2_file(validate_files):
                             show = f"No Change Rows: ({start_rows}) in Tmp files."
                 logging.info(show)
                 start_rows += 1
-                
+
             status = "successed"
-            
+
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
         return status
@@ -289,13 +287,13 @@ class convert_2_file(validate_files):
                         raise Exception(err)
 
                     ## write data to target files.
-                    logging.info(f"Write mode: {self.mode}. in Terget_files: '{Path(target_name).name}'")
+                    logging.info(f"Write mode: {self.mode} in Terget_files: '{Path(target_name).name}'")
                     if status == "successed":
                         max_rows = max(new_data, default=0)
                         while start_rows <= max_rows:
                             for idx, columns in enumerate(new_data[start_rows].keys(), 1):
                                 if columns == 'remark':
-                                    if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted", "Overwrite"]:
+                                    if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
                                         show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
                                     elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
                                         show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
@@ -310,10 +308,10 @@ class convert_2_file(validate_files):
                                 logging.info(show)
                             start_rows += 1
                     self.remove_row_empty(sheet)
-                    
+
                     ## save files.
                     workbook.save(target_name)
-                    status = "compeleted"
+                    status = "successed"
 
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")

@@ -8,7 +8,7 @@ class setup_project(convert_2_file):
     def __init__(self):
         
         setup_folder()
-        # setup_log()
+        setup_log()
         try:
             args = setup_parser().parsed_params
             logging.info(f"Start Run Batch Date: {args.batch_date}")
@@ -23,8 +23,7 @@ class setup_project(convert_2_file):
                 except StopIteration:
                     break
         finally:
-            'continue'
-            # logging.info(f"Stop Batch Date {args.batch_date}\n")     
+            logging.info(f"Stop Batch Date")     
         clear_folder()
         
 if __name__ == "__main__":
