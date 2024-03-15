@@ -12,8 +12,6 @@ from openpyxl.styles import Font
 
 class convert_2_files:
     def __init__(self, **kwargs):
-        super().__init__()
-
         self.__dict__.update(kwargs)
 
         for key, value in self.__dict__.items():
