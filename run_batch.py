@@ -128,7 +128,7 @@ class convert_2_file(validate_files):
         logging.info("Write Data to Tmp files..")
 
         source_name = f"{Folder.TEMPLATE}Application Data Requirements.xlsx"
-        tmp_name =  f"{Folder.TMP}DD_{self.batch_date.strftime('%d%m%Y')}.xlsx"
+        tmp_name =  f"{Folder.TMP}TMP_{self.batch_date.strftime('%d%m%Y')}.xlsx"
         status = "failed"
 
         for key in self.__log:

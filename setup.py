@@ -7,12 +7,12 @@ from os.path import join
 from datetime import datetime
 
 CURRENT_DIR = os.getcwd()
-LOGGER_CONFIG = join(CURRENT_DIR, 'logging_config.yaml')
+LOGGER_CONFIG = join(CURRENT_DIR, "logging_config.yaml")
 class Folder:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
     TEMPLATE    = join(CURRENT_DIR, "template/")
-    TMP         = join(CURRENT_DIR, "tmp/dd_export/")
+    TMP         = join(CURRENT_DIR, "tmp/tmp/")
     LOG         = join(CURRENT_DIR, "tmp/log/")
     FILE        = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
 
@@ -46,8 +46,8 @@ class setup_parser:
                 ArgumentParams.DEFAULT : datetime.today().date()
             },
             {
-                ArgumentParams.SHORT_NAME : "-o",
-                ArgumentParams.NAME : "--open",
+                ArgumentParams.SHORT_NAME : "-t",
+                ArgumentParams.NAME : "--tmp",
                 ArgumentParams.DESCRIPTION : "-o: not clear tmp",
                 ArgumentParams.REQUIRED : False,
                 ArgumentParams.ISFLAG : True,
@@ -64,7 +64,7 @@ class setup_parser:
         ]
         
     def set_arguments(self):
-        # add arguments
+        # set arguments
         for args in self.get_args_list():
             short_name = args.get(ArgumentParams.SHORT_NAME)
             name = args.get(ArgumentParams.NAME)
@@ -109,7 +109,7 @@ def setup_folder():
     for folder in _folders:
         os.makedirs(folder, exist_ok=True)
 
-def clear_folder():
-    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_") and value.endswith("dd_export/")]
+def clear_tmp():
+    _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_") and value.endswith("tmp/")]
     for folder in _folders:
         shutil.rmtree(folder)

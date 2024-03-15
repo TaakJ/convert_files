@@ -1,8 +1,7 @@
 import logging
 from run_batch import convert_2_file
-from setup import setup_parser, setup_folder, setup_log, clear_folder
+from setup import setup_parser, setup_folder, setup_log, clear_tmp
 from exception import CustomException
-from datetime import datetime
 
 class setup_project(convert_2_file):
     
@@ -23,9 +22,10 @@ class setup_project(convert_2_file):
                     logging.error(msg_err)
                 except StopIteration:
                     break
-        logging.info(f"Stop Batch Date\n\n")
-        if not params.open: 
-            clear_folder()
+        logging.info(f"Stop Batch Date\n")
+        
+        if not params.tmp: 
+            clear_tmp()
         
 if __name__ == "__main__":
     setup_project()
