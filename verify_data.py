@@ -114,23 +114,20 @@ class validate_files:
     def validation_data(self, diff_df, new_df):
 
         logging.info("Verify Changed information..")
-
         if len(diff_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(diff_df.index) if idx not in list(new_df.index)]
         
         ## reset index data.
         union_index = np.union1d(diff_df.index, new_df.index)
-        
         ## target / tmp data.
-        diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:,:-1]
-        
+        diff_df = diff_df.reindex(index=union_index, columns=diff_df.columns).iloc[:, :-1]
         ## new data.
-        new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:,:-1]
-                
+        new_df = new_df.reindex(index=union_index, columns=new_df.columns).iloc[:, :-1]
+        
         # compare data rows by rows.
         diff_df['count_change'] = pd.DataFrame(np.where(diff_df.ne(new_df), True, False), index=diff_df.index, columns=diff_df.columns)\
             .apply(lambda x: (x==True).sum(), axis=1)
-            
+        
         def format_record(recorded):
             return  "{" + "\n".join("{!r}: {!r},".format(columns, values) for columns, values in recorded.items()) + "}"
             
@@ -164,9 +161,11 @@ class validate_files:
                 diff_df.loc[idx, 'remark'] = "Removed"
         
         self.skip_rows = [i + start_rows for i in self.skip_rows]
+        
         diff_df = diff_df.drop(['count_change'], axis=1)
         diff_df.index += start_rows 
         new_data = diff_df.to_dict('index')
+        
         return new_data
 
     def customize_data(self, select_date, target_df, tmp_df):

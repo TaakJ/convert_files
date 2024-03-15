@@ -127,55 +127,58 @@ class convert_2_file(validate_files):
 
         logging.info("Write Data to Tmp files..")
 
-        tmp_name = f"{Folder.TMP}DD_{self.batch_date.strftime('%d%m%Y')}.xlsx"
-        workbook = openpyxl.Workbook()
+        source_name = f"{Folder.TEMPLATE}Application Data Requirements.xlsx"
+        tmp_name =  f"{Folder.TMP}DD_{self.batch_date.strftime('%d%m%Y')}.xlsx"
         status = "failed"
-        start_rows = 2
 
         for key in self.__log:
             try:
                 if key['source'] == "Target_file":
-                    new_df = pd.DataFrame( key['data'])
-                    new_df['remark'] = "Inserted"
-                    ## set empty tmp_df.
-                    tmp_df = pd.DataFrame(columns=new_df.columns)
-                    
                     key.update({'full_path': tmp_name, 'status': status})
-
+                    ## get new data.
+                    new_df = pd.DataFrame(key["data"])
+                    new_df['remark'] = "Inserted"
                     try:
                         workbook = openpyxl.load_workbook(tmp_name)
                         get_sheet = workbook.get_sheet_names()
                         sheet_num = len(get_sheet)
-                        sheet_name = f"RUN_TIME_{sheet_num}"
+                        sheet_name = f"RUN_TIME_{sheet_num - 1}"
+                        sheet = workbook.get_sheet_by_name(sheet_name)
                         workbook.active = sheet_num
                         
-                        ## read tmp files
-                        tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
-
-                        ## genarate apeend sheet tmp files.
-                        sheet_name = f"RUN_TIME_{sheet_num + 1}"
-                        sheet = workbook.create_sheet(sheet_name)
-
                     except FileNotFoundError:
-                        ## genarate sheet tmp files on first time.
-                        sheet_name = "RUN_TIME_1"
+                        ## copy files from template.
+                        status = self.copy_worksheet(source_name, tmp_name)
+                        workbook = openpyxl.load_workbook(tmp_name)
                         sheet = workbook.worksheets[0]
+                        sheet_name = "RUN_TIME_1"
                         sheet_num = 1
                         sheet.title = sheet_name
-
-                    ## compare new data with tmp data
-                    new_data = self.validation_data(tmp_df, new_df)
                     
-                    ## write to tmp files.
                     logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
-                    status = self.wirte_rows(start_rows, sheet, new_data)
-                    ## save files.
-                    # workbook.move_sheet(workbook.active, offset=-sheet_num)
-                    # workbook.save(tmp_name)
+                    
+                    # read tmp files.
+                    data = sheet.values
+                    columns = next(data)[0:]
+                    tmp_df = pd.DataFrame(data, columns=columns)
+                    
+                    if status != "successed":
+                        tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
+                        
+                        sheet_name = f"RUN_TIME_{sheet_num}"
+                        sheet = workbook.create_sheet(sheet_name)
+                    else:
+                        tmp_df['remark'] = "Inserted" 
+                        
+                    ## compare tmp_df with new_df.
+                    new_data = self.validation_data(tmp_df, new_df)
+                    ## write to tmp files.
+                    status = self.write_worksheet(sheet, new_data)
+                    workbook.move_sheet(workbook.active, offset=-sheet_num)
+                    workbook.save(tmp_name)
 
-                    # key.update({'sheet_name': sheet_name,'status': status})
-                    # logging.info(f"Write to Tmp files status: {status}.")
+                    key.update({'full_path': tmp_name, 'sheet_name': sheet_name,'status': status})
+                    logging.info(f"Write to Tmp files status: {status}.")
 
             except Exception as err:
                 key.update({'errors': err})
@@ -183,15 +186,17 @@ class convert_2_file(validate_files):
             if "errors" in key:
                 raise CustomException(errors=self.__log)
 
-    def wirte_rows(self, start_rows, sheet, new_data):
+    def write_worksheet(self, sheet, new_data):
 
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
-
+        status = "failed"
+        start_rows = 2
+        
         try:
-            # write header.
-            header =  [columns for columns in new_data[start_rows].keys()]
-            sheet.append(header)
+            # write columns.
+            for idx, columns in enumerate(new_data[start_rows].keys(), 1):
+                sheet.cell(row=1, column=idx).value = columns
             ## write data.
             while start_rows <= max_rows:
                 for remark in [new_data[start_rows][columns] for columns in new_data[start_rows].keys() if columns == 'remark']:
@@ -208,14 +213,13 @@ class convert_2_file(validate_files):
                             show = f"No Change Rows: ({start_rows}) in Tmp files."
                 logging.info(show)
                 start_rows += 1
-
+                
             status = "successed"
-
+            
         except KeyError as err:
             raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
-
         return status
-    
+
     def copy_worksheet(self, source_name, target_name):
         try:
             if not glob.glob(target_name, recursive=True):
@@ -223,7 +227,7 @@ class convert_2_file(validate_files):
             status = "successed"
         except FileNotFoundError as err:
             raise FileNotFoundError(err)
-        
+
         return status
 
     def remove_row_empty(self, sheet):
@@ -231,7 +235,7 @@ class convert_2_file(validate_files):
             if not all(cell.value for cell in row):
                 sheet.delete_rows(row[0].row, 1)
                 self.remove_row_empty(sheet)
-    
+
     def write_data_to_target_file(self):
 
         logging.info("Write Data to Target files..")
@@ -239,13 +243,19 @@ class convert_2_file(validate_files):
         target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
         status = "failed"
         start_rows = 2
-        
+
         for key in self.__log:
             try:
                 if key['source'] == "Target_file":
+                    ## read tmp file.
+                    tmp_name = key['full_path']
+                    sheet_name = key['sheet_name']
+                    tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
+                    tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
+
                     try:
                         ## check write mode.
-                        if self.mode == "Append": 
+                        if self.mode == "Append":
                             status = self.copy_worksheet(source_name, target_name)
                             if status == "successed":
                                 workbook = openpyxl.load_workbook(target_name)
@@ -256,36 +266,30 @@ class convert_2_file(validate_files):
                             self.mode = "Overwrite"
                             target_name = f"{Folder.EXPORT}{Path(target_name).stem}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
                             status = "successed" if glob.glob(target_name, recursive=True) else self.copy_worksheet(source_name, target_name)
-                            
+
                             if status == "successed":
                                 workbook = openpyxl.load_workbook(target_name)
                                 get_sheet = workbook.get_sheet_names()
                                 sheet = workbook.get_sheet_by_name(get_sheet[0])
                                 workbook.active = sheet
-                        
+
                         ## read target file.
                         data = sheet.values
                         columns = next(data)[0:]
                         target_df = pd.DataFrame(data, columns=columns)
                         target_df['remark'] = "Inserted"
-                        
-                        ## read tmp file.
-                        tmp_name = key['full_path']
-                        sheet_name = key['sheet_name']
-                        tmp_df = pd.read_excel(tmp_name, sheet_name=sheet_name)
-                        tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
-                        
+
                         ## compare data tmp data with target data.
                         select_date = tmp_df['CreateDate'].unique()
                         status, new_data = self.customize_data(select_date, target_df, tmp_df)
-                        
+
                         key.update({'full_path': target_name, 'status': status})
-                        
+
                     except Exception as err:
                         raise Exception(err)
-                        
+
                     ## write data to target files.
-                    logging.info(f"Write mode: {self.mode}. in Terget_files: '{Path(target_name).name}'")        
+                    logging.info(f"Write mode: {self.mode}. in Terget_files: '{Path(target_name).name}'")
                     if status == "successed":
                         max_rows = max(new_data, default=0)
                         while start_rows <= max_rows:
@@ -305,12 +309,12 @@ class convert_2_file(validate_files):
                                     continue
                                 logging.info(show)
                             start_rows += 1
+                    self.remove_row_empty(sheet)
                     
                     ## save files.
-                    self.remove_row_empty(sheet)
                     workbook.save(target_name)
                     status = "compeleted"
-                    
+
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
 
