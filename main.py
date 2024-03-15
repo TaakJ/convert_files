@@ -4,7 +4,6 @@ from setup import setup_parser, setup_folder, setup_log, clear_tmp
 from exception import CustomException
 
 class setup_project(convert_2_file):
-    
     def __init__(self):
         setup_folder()
         setup_log()

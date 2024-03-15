@@ -12,8 +12,8 @@ class Folder:
     RAW         = join(CURRENT_DIR, "raw/")
     EXPORT      = join(CURRENT_DIR, "export/")
     TEMPLATE    = join(CURRENT_DIR, "template/")
-    TMP         = join(CURRENT_DIR, "tmp/tmp/")
-    LOG         = join(CURRENT_DIR, "tmp/log/")
+    TMP         = join(CURRENT_DIR, "tmp/")
+    LOG         = join(CURRENT_DIR, "log/")
     FILE        = ['ADM.txt', 'BOS.xlsx', 'CUM.xls', 'DocImage.txt', 'ICAS-NCR.xlsx', 'IIC.xlsx', 'LDS-P_UserDetail.txt', 'Lead-Management.xlsx', 'MOC.xlsx']
 
 class ArgumentParams:
@@ -28,7 +28,6 @@ class ArgumentParams:
 
 class setup_parser:
     def __init__(self):
-        
         self.parser = argparse.ArgumentParser()
         self.set_arguments()
         self.parsed_params = self.parser.parse_args()
