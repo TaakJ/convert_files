@@ -1,8 +1,10 @@
 class CustomException(Exception):
-    def __init__(self, *arg, **kwargs):
-        for key, value in kwargs.items():
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        
+        for key, value in self.__dict__.items():
             setattr(self, key, value)
-
+        
         self.msg_err = self.generate_meg_err()
     
     def __iter__(self):
