@@ -183,13 +183,13 @@ class method_files:
             compare_data = self.validation_data(unique_date, tmp_df)
 
             ## add value to other_date.
-            other_date = other_date | {max_rows + key:  {**values, **{'upsert_rows': key}} \
+            merge_date = other_date | {max_rows + key:  {**values, **{'upsert_rows': key}} \
                 if key in self.upsert_rows or key in self.skip_rows \
                     else values for key, values in compare_data.items()}
 
             ## sorted date order.
             start_row = 2
-            new_data = {start_row + idx : values for idx, values in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
+            new_data = {start_row + idx : values for idx, values in enumerate(sorted(merge_date.values(), key=lambda x: x['CreateDate']))}
             i = 0
             for rows, columns in new_data.items():
                 if columns.get('upsert_rows'):
