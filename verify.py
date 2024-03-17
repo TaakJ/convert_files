@@ -183,26 +183,26 @@ class method_files:
             compare_data = self.validation_data(unique_date, tmp_df)
 
             ## add value to other_date.
-            merge_date = other_date | {max_rows + key:  {**values, **{'upsert_rows': key}} \
+            other_date = other_date | {max_rows + key:  {**values, **{'mark_rows': key}} \
                 if key in self.upsert_rows or key in self.skip_rows \
                     else values for key, values in compare_data.items()}
-
+            
             ## sorted date order.
             start_row = 2
-            new_data = {start_row + idx : values for idx, values in enumerate(sorted(merge_date.values(), key=lambda x: x['CreateDate']))}
+            merge_data = {start_row + idx : values for idx, values in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
             i = 0
-            for rows, columns in new_data.items():
-                if columns.get('upsert_rows'):
-                    if columns['upsert_rows'] in self.upsert_rows:
-                        self.upsert_rows[f"{rows}"] = self.upsert_rows.pop(columns['upsert_rows'])
-                    elif columns['upsert_rows'] in self.skip_rows:
+            for rows, columns in merge_data.items():
+                if columns.get('mark_rows'):
+                    if columns['mark_rows'] in self.upsert_rows:
+                        self.upsert_rows[f"{rows}"] = self.upsert_rows.pop(columns['mark_rows'])
+                    elif columns['mark_rows'] in self.skip_rows:
                         self.skip_rows[i] = rows
                         i += 1
-                    columns.pop('upsert_rows')
+                    columns.pop('mark_rows')
 
             status = "successed"
 
         except Exception as err:
             raise Exception(err)
 
-        return status, new_data
+        return status, merge_data

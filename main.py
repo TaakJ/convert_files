@@ -19,7 +19,7 @@ class setup_project:
                 logging.error(msg_err)
             except StopIteration:
                 break
-    logging.info("Stop Batch Date: {params.batch_date}\n")
+    logging.info(f"Stop Batch Date: {params.batch_date}\n")
     
     if not params.tmp: 
         clear_tmp()
