@@ -64,11 +64,11 @@ class convert_2_files:
     @check_success_files
     def get_list_files(self):
         if self.__log == []:
-            args = []
+            list_files = []
             for file in Folder.FILE:
                 source = Path(file).stem
-                args.append({'source': source, 'full_path': file})
-            self.__log = args
+                list_files.append({'source': source, 'full_path': file})
+            self.__log = list_files
 
         return self.__log
 
