@@ -200,7 +200,7 @@ class method_files:
                         i += 1
                     columns.pop('mark_rows')
 
-            status = "successed"
+            status = "succeed"
 
         except Exception as err:
             raise Exception(err)

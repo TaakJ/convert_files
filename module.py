@@ -46,7 +46,7 @@ class convert_2_files:
                 full_path = Folder.RAW + filename
 
                 if glob.glob(full_path, recursive=True):
-                    status = "successed"
+                    status = "succeed"
                     success_file.append(status)
                 else:
                     status = "missing"
@@ -56,7 +56,7 @@ class convert_2_files:
             if success_file.__contains__("missing"):
                 raise CustomException(errors=func(*args))
             else:
-                logging.info(f"File found count {len(success_file)} status: successed.")
+                logging.info(f"File found count {len(success_file)} status: succeed.")
 
             return func(*args)
         return wrapper_success_files
@@ -109,7 +109,7 @@ class convert_2_files:
                     logging.info(f"Read Text files: '{full_path}'.")
                     clean_data = self.generate_text_data(full_path=full_path)
 
-                status = "successed"
+                status = "succeed"
                 key.update({'data': clean_data, 'status': status})
 
             except Exception as err:
@@ -152,16 +152,16 @@ class convert_2_files:
                         sheet_num = 1
                         sheet.title = sheet_name
 
-                    logging.info(f"Genarate Sheet_name: {sheet_name} in Tmp files.")
+                    logging.info(f"Generate Sheet_name: {sheet_name} in Tmp files.")
 
                     # read tmp files.
                     data = sheet.values
                     columns = next(data)[0:]
                     tmp_df = pd.DataFrame(data, columns=columns)
 
-                    if status != "successed":
+                    if status != "succeed":
                         tmp_df = tmp_df.loc[tmp_df['remark'] != "Removed"]
-                        ## create new shhet.
+                        ## create new sheet.
                         sheet_name = f"RUN_TIME_{sheet_num}"
                         sheet = workbook.create_sheet(sheet_name)
                     else:
@@ -209,17 +209,17 @@ class convert_2_files:
                 logging.info(show)
                 start_rows += 1
 
-            status = "successed"
+            status = "succeed"
 
         except KeyError as err:
-            raise KeyError(f"Can not Wirte rows: {err} in Tmp files.")
+            raise KeyError(f"Can not Write rows: {err} in Tmp files.")
         return status
 
     def copy_worksheet(self, source_name, target_name):
         try:
             if not glob.glob(target_name, recursive=True):
                 shutil.copyfile(source_name, target_name)
-            status = "successed"
+            status = "succeed"
         except FileNotFoundError as err:
             raise FileNotFoundError(err)
 
@@ -252,7 +252,7 @@ class convert_2_files:
                         ## check write mode.
                         if self.mode == "Append":
                             status = self.copy_worksheet(source_name, target_name)
-                            if status == "successed":
+                            if status == "succeed":
                                 workbook = openpyxl.load_workbook(target_name)
                                 get_sheet = workbook.get_sheet_names()
                                 sheet = workbook.get_sheet_by_name(get_sheet[0])
@@ -260,9 +260,9 @@ class convert_2_files:
                         else:
                             self.mode = "Overwrite"
                             target_name = f"{Folder.EXPORT}{Path(target_name).stem}_{self.batch_date.strftime('%d%m%Y')}.xlsx"
-                            status = "successed" if glob.glob(target_name, recursive=True) else self.copy_worksheet(source_name, target_name)
+                            status = "succeed" if glob.glob(target_name, recursive=True) else self.copy_worksheet(source_name, target_name)
 
-                            if status == "successed":
+                            if status == "succeed":
                                 workbook = openpyxl.load_workbook(target_name)
                                 get_sheet = workbook.get_sheet_names()
                                 sheet = workbook.get_sheet_by_name(get_sheet[0])
@@ -284,8 +284,8 @@ class convert_2_files:
                         raise Exception(err)
 
                     ## write data to target files.
-                    logging.info(f"Write mode: {self.mode} in Terget_files: '{Path(target_name).name}'")
-                    if status == "successed":
+                    logging.info(f"Write mode: {self.mode} in Target_files: '{Path(target_name).name}'")
+                    if status == "succeed":
                         max_rows = max(new_data, default=0)
                         while start_rows <= max_rows:
                             for idx, columns in enumerate(new_data[start_rows].keys(), 1):
@@ -308,7 +308,7 @@ class convert_2_files:
 
                     ## save files.
                     workbook.save(target_name)
-                    status = "successed"
+                    status = "succeed"
 
                     key.update({'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
