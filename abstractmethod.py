@@ -17,13 +17,11 @@ class call_logging(ABC):
     def _log_setter(self, log):
         pass
 
-
 class verify:
-
     def open_files(self):
+        self.log = [{"mode": "write"}]
         for key in self.log:
             key.update({"mode": "write"})
-
 
 class convert_files(call_logging):
 
