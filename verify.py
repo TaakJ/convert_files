@@ -31,7 +31,7 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_excel
-    def generate_excel_data(self, full_path: str):
+    def generate_excel_data(self, full_path: str) -> any:
 
         logging.info("Cleansing Data in Excel files to Dataframe..")
 
@@ -93,7 +93,7 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_text
-    def generate_text_data(self, full_path: str):
+    def generate_text_data(self, full_path: str) -> any:
 
         logging.info("Cleansing Data in Text files to Dataframe..")
 
