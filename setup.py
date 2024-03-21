@@ -62,7 +62,7 @@ class setup_parser:
             }
         ]
         
-    def set_arguments(self):
+    def set_arguments(self) -> None:
         # set arguments
         for args in self.get_args_list():
             short_name = args.get(ArgumentParams.SHORT_NAME)
@@ -85,7 +85,7 @@ class setup_parser:
                     self.parser.add_argument(short_name, name, help=description, required=required,
                                         default=default, action=action, choices=choices)
 
-def setup_log():
+def setup_log() -> None:
     config_yaml  = None
     date = datetime.today().strftime("%d%m%Y")
     log_name = f'log_{date}.log'
@@ -103,12 +103,12 @@ def setup_log():
     else:
         raise Exception(f"Yaml file file_path: '{LOGGER_CONFIG}' doesn't exist.")
 
-def setup_folder():
+def setup_folder() -> None:
     _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_")]
     for folder in _folders:
         os.makedirs(folder, exist_ok=True)
 
-def clear_tmp():
+def clear_tmp() -> None:
     _folders = [value for name, value in vars(Folder).items() if isinstance(value, str) and not name.startswith("_") and value.endswith("tmp/")]
     for folder in _folders:
         shutil.rmtree(folder)

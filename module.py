@@ -21,7 +21,7 @@ class convert_2_files:
 
         self.__log = []
         self.date = datetime.now()
-        
+
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
@@ -36,7 +36,7 @@ class convert_2_files:
         self.__log = log
 
     def check_success_files(func):
-        def wrapper_success_files(*args):
+        def wrapper_success_files(*args: tuple) -> list[dict]:
 
             logging.info("Check Success files..")
 
@@ -62,7 +62,7 @@ class convert_2_files:
         return wrapper_success_files
 
     @check_success_files
-    def get_list_files(self):
+    def get_list_files(self) -> list[dict]:
         if self.__log == []:
             list_files = []
             for file in Folder.FILE:
@@ -76,11 +76,11 @@ class convert_2_files:
 
         logging.info("Mock Data")
 
-        def wrapper_mock_data(*args):
+        def wrapper_mock_data(*args: tuple) -> list[dict]:
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate','LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
-                        [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
@@ -91,7 +91,7 @@ class convert_2_files:
         return wrapper_mock_data
 
     @mock_data
-    def get_data_files(self):
+    def get_data_files(self) -> list[dict]:
 
         logging.info("Get Data from files..")
 
@@ -120,7 +120,7 @@ class convert_2_files:
 
         return self.__log
 
-    def write_data_to_tmp_file(self):
+    def write_data_to_tmp_file(self) -> None:
 
         logging.info("Write Data to Tmp files..")
 
@@ -168,6 +168,7 @@ class convert_2_files:
                         tmp_df['remark'] = "Inserted"
 
                     new_data = self.validation_data(tmp_df, new_df)
+
                     ## write to tmp files.
                     status = self.write_worksheet(sheet, new_data)
                     workbook.move_sheet(workbook.active, offset=-sheet_num)
@@ -182,7 +183,7 @@ class convert_2_files:
             if "errors" in key:
                 raise CustomException(errors=self.__log)
 
-    def write_worksheet(self, sheet, new_data):
+    def write_worksheet(self, sheet: any, new_data: dict) -> str:
 
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
@@ -215,7 +216,7 @@ class convert_2_files:
             raise KeyError(f"Can not Write rows: {err} in Tmp files.")
         return status
 
-    def copy_worksheet(self, source_name, target_name):
+    def copy_worksheet(self, source_name: str, target_name: str) -> str:
         try:
             if not glob.glob(target_name, recursive=True):
                 shutil.copyfile(source_name, target_name)
@@ -225,13 +226,13 @@ class convert_2_files:
 
         return status
 
-    def remove_row_empty(self, sheet):
+    def remove_row_empty(self, sheet: any) -> None:
         for row in sheet.iter_rows():
             if not all(cell.value for cell in row):
                 sheet.delete_rows(row[0].row, 1)
                 self.remove_row_empty(sheet)
 
-    def write_data_to_target_file(self):
+    def write_data_to_target_file(self) -> None:
 
         logging.info("Write Data to Target files..")
         source_name = f"{Folder.TEMPLATE}Application Data Requirements.xlsx"
@@ -276,34 +277,35 @@ class convert_2_files:
 
                         ## compare data tmp data with target data.
                         select_date = tmp_df['CreateDate'].unique()
-                        status, new_data = self.customize_data(select_date, target_df, tmp_df)
+                        new_data = self.customize_data(select_date, target_df, tmp_df)
 
                         key.update({'full_path': target_name, 'status': status})
 
                     except Exception as err:
                         raise Exception(err)
 
-                    ## write data to target files.
+                    # write data to target files.
                     logging.info(f"Write mode: {self.mode} in Target files: '{target_name}'")
-                    if status == "succeed":
-                        max_rows = max(new_data, default=0)
-                        while start_rows <= max_rows:
-                            for idx, columns in enumerate(new_data[start_rows].keys(), 1):
-                                if columns == 'remark':
-                                    if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
-                                        show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
-                                    elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
-                                        show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
-                                        sheet.delete_rows(start_rows, sheet.max_row)
-                                    else:
-                                        show = f"No Change Rows: ({start_rows}) in Target files."
+                    max_rows = max(new_data, default=0)
+
+                    while start_rows <= max_rows:
+                        for idx, columns in enumerate(new_data[start_rows].keys(), 1):
+                            if columns == 'remark':
+                                if f'{start_rows}' in self.upsert_rows.keys() and new_data[start_rows][columns] in ["Updated", "Inserted"]:
+                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files. Record Changed: {self.upsert_rows[f'{start_rows}']}"
+                                elif start_rows in self.skip_rows and new_data[start_rows][columns] == "Removed":
+                                    show = f"{new_data[start_rows][columns]} Rows: ({start_rows}) in Target files."
+                                    sheet.delete_rows(start_rows, sheet.max_row)
                                 else:
-                                    if start_rows in self.skip_rows:
-                                        continue
-                                    sheet.cell(row=start_rows, column=idx).value = new_data[start_rows][columns]
+                                    show = f"No Change Rows: ({start_rows}) in Target files."
+                            else:
+                                if start_rows in self.skip_rows:
                                     continue
-                                logging.info(show)
-                            start_rows += 1
+                                sheet.cell(row=start_rows, column=idx).value = new_data[start_rows][columns]
+                                continue
+                            logging.info(show)
+                        start_rows += 1
+
                     self.remove_row_empty(sheet)
 
                     ## save files.

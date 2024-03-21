@@ -13,7 +13,7 @@ class method_files:
         self.skip_rows = []
 
     def clean_lines_excel(func):
-        def wrapper_clean_lines(*args, **kwargs):
+        def wrapper_clean_lines(*args: tuple, **kwargs:dict) -> dict:
             clean_lines = iter(func(*args, **kwargs))
 
             clean_data = {}
@@ -31,7 +31,7 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_excel
-    def generate_excel_data(self, full_path):
+    def generate_excel_data(self, full_path: str):
 
         logging.info("Cleansing Data in Excel files to Dataframe..")
 
@@ -46,7 +46,7 @@ class method_files:
                 yield clean_data
 
     def clean_lines_text(func):
-        def wrapper_clean_lines(*args, **kwargs):
+        def wrapper_clean_lines(*args: tuple, **kwargs: dict) -> dict:
             clean_lines = iter(func(*args, **kwargs))
 
             clean_data = {}
@@ -93,7 +93,7 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_text
-    def generate_text_data(self, full_path):
+    def generate_text_data(self, full_path: str):
 
         logging.info("Cleansing Data in Text files to Dataframe..")
 
@@ -111,7 +111,7 @@ class method_files:
                 clean_data = {sheets: re.sub(r'\W\s+','||',"".join(find_lines).strip()).split('||')}
                 yield clean_data
 
-    def validation_data(self, valid_df, new_df):
+    def validation_data(self, valid_df: pd.DataFrame, new_df: pd.DataFrame) -> dict:
 
         logging.info("Verify Changed information..")
 
@@ -168,10 +168,9 @@ class method_files:
 
         return compare_data
 
-    def customize_data(self, select_date, target_df, tmp_df):
+    def customize_data(self, select_date: list, target_df: pd.DataFrame, tmp_df: pd.DataFrame) -> dict:
         
         logging.info("Customize Data to Target..")
-        status = "failed"
         
         try:
             ## unique_date.
@@ -200,9 +199,7 @@ class method_files:
                         i += 1
                     columns.pop('mark_rows')
 
-            status = "succeed"
-
         except Exception as err:
             raise Exception(err)
 
-        return status, merge_data
+        return merge_data
