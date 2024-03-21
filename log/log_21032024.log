@@ -1,30 +1,30 @@
-20660 | 2024/03/21 11:33:42.225 | MainProcess | INFO | convert_2_files | main | setup_project::11 | message >>> Start Run Batch Date: 2024-03-21
-20660 | 2024/03/21 11:33:42.225 | MainProcess | INFO | convert_2_files | module | wrapper_success_files::41 | message >>> Check Success files..
-20660 | 2024/03/21 11:33:42.226 | MainProcess | INFO | convert_2_files | module | wrapper_success_files::59 | message >>> File found count 9 status: succeed.
-20660 | 2024/03/21 11:33:42.227 | MainProcess | INFO | convert_2_files | module | get_data_files::96 | message >>> Get Data from files..
-20660 | 2024/03/21 11:33:42.227 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
-20660 | 2024/03/21 11:33:42.227 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
-20660 | 2024/03/21 11:33:42.229 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
-20660 | 2024/03/21 11:33:42.229 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.233 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
-20660 | 2024/03/21 11:33:42.233 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.235 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
-20660 | 2024/03/21 11:33:42.236 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
-20660 | 2024/03/21 11:33:42.237 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
-20660 | 2024/03/21 11:33:42.237 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.238 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
-20660 | 2024/03/21 11:33:42.239 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.241 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
-20660 | 2024/03/21 11:33:42.241 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
-20660 | 2024/03/21 11:33:42.241 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
-20660 | 2024/03/21 11:33:42.241 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.244 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
-20660 | 2024/03/21 11:33:42.244 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
-20660 | 2024/03/21 11:33:42.248 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::125 | message >>> Write Data to Tmp files..
-20660 | 2024/03/21 11:33:42.255 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::155 | message >>> Generate Sheet_name: RUN_TIME_1 in Tmp files.
-20660 | 2024/03/21 11:33:42.256 | MainProcess | INFO | convert_2_files | verify | validation_data::116 | message >>> Verify Changed information..
-20660 | 2024/03/21 11:33:42.266 | MainProcess | INFO | convert_2_files | module | write_worksheet::189 | message >>> Data for write: 2. rows
-20660 | 2024/03/21 11:33:42.266 | MainProcess | INFO | convert_2_files | module | write_worksheet::210 | message >>> Inserted Rows: (2) in Tmp files. Record Changed: {'ApplicationCode': 1,
+26508 | 2024/03/21 14:38:47.856 | MainProcess | INFO | convert_2_files | main | setup_project::11 | message >>> Start Run Batch Date: 2024-03-21
+26508 | 2024/03/21 14:38:47.856 | MainProcess | INFO | convert_2_files | module | wrapper_success_files::41 | message >>> Check Success files..
+26508 | 2024/03/21 14:38:47.858 | MainProcess | INFO | convert_2_files | module | wrapper_success_files::59 | message >>> File found count 9 status: succeed.
+26508 | 2024/03/21 14:38:47.859 | MainProcess | INFO | convert_2_files | module | get_data_files::96 | message >>> Get Data from files..
+26508 | 2024/03/21 14:38:47.859 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/ADM.txt'.
+26508 | 2024/03/21 14:38:47.859 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
+26508 | 2024/03/21 14:38:47.861 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/BOS.xlsx'.
+26508 | 2024/03/21 14:38:47.861 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.865 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/CUM.xls'.
+26508 | 2024/03/21 14:38:47.866 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.868 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/DocImage.txt'.
+26508 | 2024/03/21 14:38:47.868 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
+26508 | 2024/03/21 14:38:47.869 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/ICAS-NCR.xlsx'.
+26508 | 2024/03/21 14:38:47.869 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.871 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/IIC.xlsx'.
+26508 | 2024/03/21 14:38:47.872 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.874 | MainProcess | INFO | convert_2_files | module | get_data_files::109 | message >>> Read Text files: 'D:\Document\Coding\Project\convert_2_files\raw/LDS-P_UserDetail.txt'.
+26508 | 2024/03/21 14:38:47.874 | MainProcess | INFO | convert_2_files | verify | generate_text_data::98 | message >>> Cleansing Data in Text files to Dataframe..
+26508 | 2024/03/21 14:38:47.874 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/Lead-Management.xlsx'.
+26508 | 2024/03/21 14:38:47.874 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.878 | MainProcess | INFO | convert_2_files | module | get_data_files::106 | message >>> Read Excel files: 'D:\Document\Coding\Project\convert_2_files\raw/MOC.xlsx'.
+26508 | 2024/03/21 14:38:47.878 | MainProcess | INFO | convert_2_files | verify | generate_excel_data::36 | message >>> Cleansing Data in Excel files to Dataframe..
+26508 | 2024/03/21 14:38:47.882 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::125 | message >>> Write Data to Tmp files..
+26508 | 2024/03/21 14:38:47.891 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::155 | message >>> Generate Sheet_name: RUN_TIME_1 in Tmp files.
+26508 | 2024/03/21 14:38:47.893 | MainProcess | INFO | convert_2_files | verify | validation_data::116 | message >>> Verify Changed information..
+26508 | 2024/03/21 14:38:47.900 | MainProcess | INFO | convert_2_files | module | write_worksheet::189 | message >>> Data for write: 2. rows
+26508 | 2024/03/21 14:38:47.901 | MainProcess | INFO | convert_2_files | module | write_worksheet::210 | message >>> Inserted Rows: (2) in Tmp files. Record Changed: {'ApplicationCode': 1,
 'AccountOwner': 2,
 'AccountName': 3,
 'AccountType': 4,
@@ -36,15 +36,27 @@
 'AccountDescription': 10,
 'CreateDate': '2024-03-21',
 'LastLogin': 12,
-'LastUpdatedDate': Timestamp('2024-03-21 11:33:42.225178'),
+'LastUpdatedDate': Timestamp('2024-03-21 14:38:47.856322'),
 'AdditionalAttribute': 14,}
-20660 | 2024/03/21 11:33:42.275 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::178 | message >>> Write to Tmp files status: succeed.
-20660 | 2024/03/21 11:33:42.275 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::237 | message >>> Write Data to Target files..
-20660 | 2024/03/21 11:33:42.286 | MainProcess | INFO | convert_2_files | verify | customize_data::173 | message >>> Customize Data to Target..
-20660 | 2024/03/21 11:33:42.287 | MainProcess | INFO | convert_2_files | verify | validation_data::116 | message >>> Verify Changed information..
-20660 | 2024/03/21 11:33:42.292 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::288 | message >>> Write mode: Overwrite in Target files: 'D:\Document\Coding\Project\convert_2_files\export/Application Data Requirements_21032024.xlsx'
-20660 | 2024/03/21 11:33:42.293 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::305 | message >>> No Change Rows: (2) in Target files.
-20660 | 2024/03/21 11:33:42.293 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::305 | message >>> Removed Rows: (3) in Target files.
-20660 | 2024/03/21 11:33:42.300 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::314 | message >>> Write to Target Files status: succeed.
-20660 | 2024/03/21 11:33:42.301 | MainProcess | INFO | convert_2_files | main | setup_project::22 | message >>> Stop Batch Date: 2024-03-21
+26508 | 2024/03/21 14:38:48.022 | MainProcess | INFO | convert_2_files | module | write_data_to_tmp_file::178 | message >>> Write to Tmp files status: succeed.
+26508 | 2024/03/21 14:38:48.022 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::237 | message >>> Write Data to Target files..
+26508 | 2024/03/21 14:38:48.035 | MainProcess | INFO | convert_2_files | verify | customize_data::173 | message >>> Customize Data to Target..
+26508 | 2024/03/21 14:38:48.037 | MainProcess | INFO | convert_2_files | verify | validation_data::116 | message >>> Verify Changed information..
+26508 | 2024/03/21 14:38:48.042 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::288 | message >>> Write mode: Append in Target files: 'D:\Document\Coding\Project\convert_2_files\export/Application Data Requirements.xlsx'
+26508 | 2024/03/21 14:38:48.042 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::306 | message >>> Inserted Rows: (2) in Target files. Record Changed: {'ApplicationCode': 1,
+'AccountOwner': 2,
+'AccountName': 3,
+'AccountType': 4,
+'EntitlementName': 5,
+'SecondEntitlementName': 6,
+'ThirdEntitlementName': 7,
+'AccountStatus': 8,
+'IsPrivileged': 9,
+'AccountDescription': 10,
+'CreateDate': '2024-03-21',
+'LastLogin': 12,
+'LastUpdatedDate': Timestamp('2024-03-21 14:38:47.856000'),
+'AdditionalAttribute': 14,}
+26508 | 2024/03/21 14:38:48.051 | MainProcess | INFO | convert_2_files | module | write_data_to_target_file::316 | message >>> Write to Target Files status: succeed.
+26508 | 2024/03/21 14:38:48.051 | MainProcess | INFO | convert_2_files | main | setup_project::22 | message >>> Stop Batch Date: 2024-03-21
 
