@@ -25,19 +25,23 @@ class verify:
 
 class convert_files(call_logging):
 
-    def __init__(self):
+    def __init__(self, content):
         super().__init__()
-
+        # self.content = content
+        # print(self.content)
+        # self.page = 0
         self.update()
-        self.insert()
-        self.delete()
+        # self.insert()
+        # self.delete()
 
     def _log_setter(self, log):
         self._log = log
 
     def update(self):
-        log = [{"source": "adm"}]
-        self._log_setter(log)
+        
+        # self.content[self.page] = 1
+        # self.page += 1
+        self._log_setter(self.a)
 
     def insert(self):
         self.open_files()
@@ -50,4 +54,4 @@ class call(convert_files, verify):
     pass
 
 
-s = call()
+s = call(content={})
