@@ -2,4 +2,5 @@
 .vscode
 *.pytest_cache
 tmp/*
+log/*
 export/*
