@@ -33,7 +33,7 @@ class setup_parser:
         self.parsed_params = self.parser.parse_args()
 
     @staticmethod
-    def get_args_list():
+    def get_args_list() -> list[dict]:
         return [
             {
                 ArgumentParams.SHORT_NAME : "-b",
