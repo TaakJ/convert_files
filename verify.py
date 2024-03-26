@@ -8,10 +8,6 @@ import pandas as pd
 import numpy as np
 
 class method_files:
-    def __init__(self):
-        self.upsert_rows = {}
-        self.skip_rows = []
-
     def clean_lines_excel(func):
         def wrapper_clean_lines(*args: tuple, **kwargs:dict) -> dict:
             clean_lines = iter(func(*args, **kwargs))
@@ -117,7 +113,7 @@ class method_files:
 
         if len(valid_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(valid_df.index) if idx not in list(new_df.index)]
-            
+
         ## reset index data.
         union_index = np.union1d(valid_df.index, new_df.index)
         ## target / tmp data.
@@ -135,7 +131,7 @@ class method_files:
         start_rows = 2
         for idx in union_index:
             if idx not in self.skip_rows:
-                
+
                 recorded = {}
                 for old_data, new_data in zip(valid_df.items(), new_df.items()):
                     if valid_df.loc[idx, 'count_change'] != 14:
@@ -165,13 +161,12 @@ class method_files:
         valid_df = valid_df.drop(['count_change'], axis=1)
         valid_df.index += start_rows
         compare_data = valid_df.to_dict('index')
-
         return compare_data
 
     def customize_data(self, select_date: list, target_df: pd.DataFrame, tmp_df: pd.DataFrame) -> dict:
-        
+
         logging.info("Customize Data to Target..")
-        
+
         try:
             ## unique_date.
             unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
@@ -185,7 +180,7 @@ class method_files:
             other_date = other_date | {max_rows + key:  {**values, **{'mark_rows': key}} \
                 if key in self.upsert_rows or key in self.skip_rows \
                     else values for key, values in compare_data.items()}
-            
+
             ## sorted date order.
             start_row = 2
             merge_data = {start_row + idx : values for idx, values in enumerate(sorted(other_date.values(), key=lambda x: x['CreateDate']))}
@@ -201,5 +196,4 @@ class method_files:
 
         except Exception as err:
             raise Exception(err)
-
         return merge_data

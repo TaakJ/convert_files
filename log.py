@@ -5,11 +5,11 @@ class call_logging(ABC):
         self._log = []
 
     @property
-    def log(self):
+    def logging(self):
         return self._log
 
-    @log.setter
-    def log(self, log):
+    @logging.setter
+    def logging(self, log):
         self._log_setter(log)
 
     @abstractmethod
