@@ -1,4 +1,5 @@
 from exception import CustomException
+from log import call_logging
 import glob, shutil
 from pathlib import Path
 import warnings
@@ -10,7 +11,7 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font
 
-class convert_2_files:
+class convert_2_files(call_logging):
     def __init__(self, **kwargs: dict):
         super().__init__()
 
@@ -19,22 +20,17 @@ class convert_2_files:
         for key, value in self.__dict__.items():
             setattr(self, key, value)
 
-        self.__log = []
+        self.log = []
         self.date = datetime.now()
 
         self.get_list_files()
         self.get_data_files()
         self.write_data_to_tmp_file()
         self.write_data_to_target_file()
-
-    @property
-    def logging(self):
-        return self.__log
-
-    @logging.setter
-    def logging(self, log):
-        self.__log = log
-
+    
+    def _log_setter(self, log):
+        self._log = log
+        
     def check_success_files(func):
         def wrapper_success_files(*args: tuple) -> list[dict]:
 
@@ -63,14 +59,16 @@ class convert_2_files:
 
     @check_success_files
     def get_list_files(self) -> list[dict]:
-        if self.__log == []:
+        
+        if self.log == []:
             list_files = []
             for file in Folder.FILE:
                 source = Path(file).stem
                 list_files.append({'source': source, 'full_path': file})
-            self.__log = list_files
-
-        return self.__log
+                
+            self._log_setter(list_files)
+            
+        return self.log
 
     def mock_data(func):
 
@@ -96,7 +94,7 @@ class convert_2_files:
         logging.info("Get Data from files..")
 
         status = "failed"
-        for key in self.__log:
+        for key in self.log:
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
             key.update({'status': status})
@@ -116,9 +114,9 @@ class convert_2_files:
                 key.update({'errors': err})
 
             if "errors" in key:
-                raise CustomException(errors=self.__log)
+                raise CustomException(errors=self.log)
 
-        return self.__log
+        return self.log
 
     def write_data_to_tmp_file(self) -> None:
 
@@ -128,7 +126,7 @@ class convert_2_files:
         tmp_name =  f"{Folder.TMP}TMP_{self.batch_date.strftime('%d%m%Y')}.xlsx"
         status = "failed"
 
-        for key in self.__log:
+        for key in self.log:
             try:
                 if key['source'] == "Target_file":
                     key.update({'full_path': tmp_name, 'status': status})
@@ -181,7 +179,7 @@ class convert_2_files:
                 key.update({'errors': err})
 
             if "errors" in key:
-                raise CustomException(errors=self.__log)
+                raise CustomException(errors=self.log)
 
     def write_worksheet(self, sheet: any, new_data: dict) -> str:
 
@@ -240,7 +238,7 @@ class convert_2_files:
         status = "failed"
         start_rows = 2
 
-        for key in self.__log:
+        for key in self.log:
             try:
                 if key['source'] == "Target_file":
                     ## read tmp file.
@@ -319,4 +317,4 @@ class convert_2_files:
                 key.update({'status': status, 'errors': err})
 
         if "errors" in key:
-            raise CustomException(errors=self.__log)
+            raise CustomException(errors=self.log)
