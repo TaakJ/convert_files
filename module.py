@@ -80,7 +80,7 @@ class convert_2_files:
             mock_data = [['ApplicationCode',	'AccountOwner', 'AccountName',	'AccountType',	'EntitlementName',	'SecondEntitlementName','ThirdEntitlementName', 'AccountStatus',	'IsPrivileged',	'AccountDescription',
                         'CreateDate','LastLogin','LastUpdatedDate',	'AdditionalAttribute'],
                         [1,2,3,4,5,6,7,8,9,10,args[0].batch_date.strftime('%Y-%m-%d'),12, args[0].date,14],
-                        # [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
+                        [15,16,17,18,19,20,21,22,23,24,args[0].batch_date.strftime('%Y-%m-%d'),26, args[0].date,28],
                         ]
             df = pd.DataFrame(mock_data)
             df.columns = df.iloc[0].values
