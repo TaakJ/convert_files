@@ -14,7 +14,9 @@ from openpyxl.styles import Font
 class convert_2_files(call_logging):
     def __init__(self, **kwargs: dict):
         super().__init__()
+        
         self.__dict__.update(kwargs)
+        
         for key, value in self.__dict__.items():
             setattr(self, key, value)
         
