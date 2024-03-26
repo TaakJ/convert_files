@@ -9,9 +9,9 @@ class call_logging(ABC):
         return self._log
 
     @logging.setter
-    def logging(self, log):
+    def logging(self, log: list):
         self._log_setter(log)
 
     @abstractmethod
-    def _log_setter(self, log):
+    def _log_setter(self, log: list):
         pass
