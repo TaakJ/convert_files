@@ -15,5 +15,5 @@ class CustomException(Exception):
 
     def generate_meg_err(self):
         for i in  range(len(self.errors)):
-            msg_err = f"Path::{self.errors[i]['full_path']} - Status::{self.errors[i]['status']} - Error::{self.errors[i].get('errors')}"
+            msg_err = f"Path::{self.errors[i]['source']} - Function::{self.errors[i]['function']} - Status::{self.errors[i]['status']} - Error::{self.errors[i].get('errors')}"
             yield msg_err

@@ -49,7 +49,7 @@ class convert_2_files(call_logging):
                 else:
                     status = "missing"
                     success_file.append(status)
-                key.update({'full_path': full_path, 'status': status})
+                key.update({'full_path': full_path, 'function': "check_success_files",  'status': status})
 
             if success_file.__contains__("missing"):
                 raise CustomException(errors=func(*args))
@@ -61,12 +61,13 @@ class convert_2_files(call_logging):
 
     @check_success_files
     def get_list_files(self) -> list[dict]:
+        
         if self.logging == []:
             log_files = []
             for file in Folder.FILE:
                 source = Path(file).stem
                 log_files.append({'source': source, 'full_path': file})
-            
+                
             self._log_setter(log_files)
         return self.logging
 
@@ -94,27 +95,28 @@ class convert_2_files(call_logging):
         logging.info("Get Data from files..")
 
         status = "failed"
-        for key in self.logging:
+        for i, key in enumerate(self.logging):
+            key.update({'function': "get_data_files", 'status': status})
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
-            key.update({'status': status})
-
+            
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
                     logging.info(f"Read Excel files: '{full_path}'.")
-                    clean_data = self.generate_excel_data(full_path=full_path)
+                    clean_data = self.generate_excel_data(i)
                 else:
                     logging.info(f"Read Text files: '{full_path}'.")
-                    clean_data = self.generate_text_data(full_path=full_path)
-
+                    clean_data = self.generate_text_data(i)
+                
                 status = "succeed"
-                key.update({'data': clean_data, 'status': status})
-
+                key.update({'status': status, 'data': clean_data})
+                
             except Exception as err:
                 key.update({'errors': err})
-
+                
             if "errors" in key:
                 raise CustomException(errors=self.logging)
+            
         return self.logging
 
     def write_data_to_tmp_file(self) -> None:
@@ -128,7 +130,7 @@ class convert_2_files(call_logging):
         for key in self.logging:
             try:
                 if key['source'] == "Target_file":
-                    key.update({'full_path': tmp_name, 'status': status})
+                    key.update({'full_path': tmp_name, 'function': "write_data_to_tmp_file", 'status': status})
                     ## get new data.
                     new_df = pd.DataFrame(key["data"])
                     new_df['remark'] = "Inserted"
@@ -165,13 +167,12 @@ class convert_2_files(call_logging):
                         tmp_df['remark'] = "Inserted"
                     
                     new_data = self.validation_data(tmp_df, new_df)
-
                     ## write to tmp files.
                     status = self.write_worksheet(sheet, new_data)
                     workbook.move_sheet(workbook.active, offset=-sheet_num)
                     workbook.save(tmp_name)
 
-                    key.update({'full_path': tmp_name, 'sheet_name': sheet_name,'status': status})
+                    key.update({'sheet_name': sheet_name, 'status': status})
                     logging.info(f"Write to Tmp files status: {status}.")
 
             except Exception as err:
@@ -182,6 +183,7 @@ class convert_2_files(call_logging):
 
     def write_worksheet(self, sheet: any, new_data: dict) -> str:
 
+        self.logging[-1].update({'function': "write_worksheet"})
         max_rows = max(new_data, default=0)
         logging.info(f"Data for write: {max_rows}. rows")
         start_rows = 2
@@ -232,6 +234,7 @@ class convert_2_files(call_logging):
     def write_data_to_target_file(self) -> None:
 
         logging.info("Write Data to Target files..")
+        
         source_name = f"{Folder.TEMPLATE}Application Data Requirements.xlsx"
         target_name = f"{Folder.EXPORT}Application Data Requirements.xlsx"
         status = "failed"
@@ -240,6 +243,7 @@ class convert_2_files(call_logging):
         for key in self.logging:
             try:
                 if key['source'] == "Target_file":
+                    key.update({'function': "write_data_to_target_file", 'status': status})
                     ## read tmp file.
                     tmp_name = key['full_path']
                     sheet_name = key['sheet_name']
@@ -276,8 +280,7 @@ class convert_2_files(call_logging):
                         select_date = tmp_df['CreateDate'].unique()
                         new_data = self.customize_data(select_date, target_df, tmp_df)
 
-                        key.update({'full_path': target_name, 'status': status})
-
+                        key.update({'full_path': target_name})
                     except Exception as err:
                         raise Exception(err)
 
@@ -304,16 +307,15 @@ class convert_2_files(call_logging):
                         start_rows += 1
 
                     self.remove_row_empty(sheet)
-
                     ## save files.
                     workbook.save(target_name)
                     status = "succeed"
 
-                    key.update({'status': status})
+                    key.update({'function': "write_data_to_target_file", 'status': status})
                     logging.info(f"Write to Target Files status: {status}.")
 
             except Exception as err:
-                key.update({'status': status, 'errors': err})
+                key.update({'errors': err})
 
         if "errors" in key:
             raise CustomException(errors=self.logging)

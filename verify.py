@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 class method_files:
+    
     def clean_lines_excel(func):
         def wrapper_clean_lines(*args: tuple, **kwargs:dict) -> dict:
             clean_lines = iter(func(*args, **kwargs))
@@ -27,13 +28,14 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_excel
-    def generate_excel_data(self, full_path: str) -> any:
+    def generate_excel_data(self, i: int) -> any:
 
         logging.info("Cleansing Data in Excel files to Dataframe..")
-
-        workbook = xlrd.open_workbook(full_path);
+        self.logging[i].update({'function': "generate_excel_data"})
+        
+        workbook = xlrd.open_workbook(self.logging[i]['full_path']);
         sheet_list = [sheet for sheet in workbook.sheet_names() if sheet != "StyleSheet"]
-
+        
         clean_data = {}
         for sheets in sheet_list:
             cells = workbook.sheet_by_name(sheets)
@@ -89,15 +91,16 @@ class method_files:
         return wrapper_clean_lines
 
     @clean_lines_text
-    def generate_text_data(self, full_path: str) -> any:
+    def generate_text_data(self, i: int) -> any:
 
         logging.info("Cleansing Data in Text files to Dataframe..")
-
-        files = open(full_path, 'rb')
+        self.logging[i].update({'function': "generate_text_data"})
+        
+        files = open(self.logging[i]['full_path'], 'rb')
         encoded = chardet.detect(files.read())['encoding']
         files.seek(0)
         decode_data = StringIO(files.read().decode(encoded))
-        sheets =  str(Path(full_path).stem).upper()
+        sheets =  str(Path(self.logging[i]['full_path']).stem).upper()
 
         clean_data = {}
         for line in decode_data:
@@ -110,7 +113,8 @@ class method_files:
     def validation_data(self, valid_df: pd.DataFrame, new_df: pd.DataFrame) -> dict:
 
         logging.info("Verify Changed information..")
-
+        self.logging[-1].update({'function': "validation_data"})
+        
         if len(valid_df.index) > len(new_df.index):
             self.skip_rows = [idx for idx in list(valid_df.index) if idx not in list(new_df.index)]
 
@@ -161,12 +165,15 @@ class method_files:
         valid_df = valid_df.drop(['count_change'], axis=1)
         valid_df.index += start_rows
         compare_data = valid_df.to_dict('index')
+        
+        self.logging[-1].update({'status': "verify"})
         return compare_data
 
     def customize_data(self, select_date: list, target_df: pd.DataFrame, tmp_df: pd.DataFrame) -> dict:
 
         logging.info("Customize Data to Target..")
-
+        self.logging[-1].update({'function': "customize_data"})
+        
         try:
             ## unique_date.
             unique_date = target_df[target_df['CreateDate'].isin(select_date)].reset_index(drop=True)
@@ -196,4 +203,5 @@ class method_files:
 
         except Exception as err:
             raise Exception(err)
+        
         return merge_data
