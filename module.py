@@ -93,12 +93,13 @@ class convert_2_files(call_logging):
     def get_data_files(self) -> list[dict]:
 
         logging.info("Get Data from files..")
-
         status = "failed"
+        
         for i, key in enumerate(self.logging):
             key.update({'function': "get_data_files", 'status': status})
             full_path = key['full_path']
             types = Path(key['full_path']).suffix
+            
             
             try:
                 if ['.xlsx', '.xls'].__contains__(types):
@@ -113,7 +114,7 @@ class convert_2_files(call_logging):
                 
             except Exception as err:
                 key.update({'errors': err})
-                
+        
             if "errors" in key:
                 raise CustomException(errors=self.logging)
             
